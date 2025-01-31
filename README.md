@@ -150,8 +150,6 @@ To open the habit view, use `:HabitView` command. Only habit tasks shown in the 
 - Red: If task had to be done that day but it was not.
 - Gray: If the deadline on that time.
 
-In addition to coloring each day, the day is also marked with an asterisk if the task was actually done that day, and an exclamation mark to show where the current day falls in the graph.
-
 ## Date Selection
 To insert a deadline or scheduled time, place cursor to the task and use one of the `:TaskDeadline` or `:TaskScheduled` commands.\
 Telescope will list date items starting from today to next 364 days.
