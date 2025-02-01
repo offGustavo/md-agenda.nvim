@@ -40,7 +40,7 @@ If you had found a bug or you have a good idea, please open an issue.
 
         --optional: create your own agenda view command to show tasks with a specific tag only
         vim.api.nvim_create_user_command("WorkAgenda", function()
-            vim.cmd("TaskFilterByTag #work") --first, filter with tags
+            vim.cmd("TaskFilterByTag work companyA") --first, filter with tags
             vim.cmd("AgendaViewWithTags") --then, run the agenda view with tag filters
         end, {})
     end
@@ -118,9 +118,10 @@ To make a task repeating, you should add the repeat indicator at the end of the 
 
 **Repeat Indicator Intervals**:
 - **"d"**: n day after.
-- **"w"**: n Week after, same weekday.
-- **"m"**: n Month after, same day of the month.
-- **"y"**: n Year after, same month and day of the month.
+- **"w"**: n week after, same weekday.
+- **"m"**: n month after, same day of the month.
+- **"y"**: n year after, same month and day of the month.
+<!--- "u": 10305u: First number represents the day of the week. In this case, Monday. The second number represents end(1) or start(0). The third number represents the occurance number and the last two numbers represents the month. The example means: the third Monday in May from the end. u stands for unnecessarily complex.-->
 
 **Progress Indicator**:\
 If you want to save the progress to the logbook, place progress indicator to the task.
@@ -151,7 +152,7 @@ Use `:AgendaView` command to open agenda view. To switch between pages, use `:Pr
 
 ### Tags
 You can filter tasks based on their tags in the agenda view by using `:TaskFilterByTag` command.
-- Example usage: `:TaskFilterByTag #tag1 #tag2`
+- Example usage: `:TaskFilterByTag tag1 tag2`
 
 To reset the filter, use `:TaskResetTagFilter` command.
 
