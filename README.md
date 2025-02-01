@@ -141,6 +141,7 @@ If the task is a repeating task, the completed task is directly saved to the log
 Use `:AgendaView` command to open agenda view. To switch between pages, use `:PrevAgendaPage` and `:NextAgendaPage`. (Pages are relative to today)
 - `:AgendaView` command resets all tag filters before opening the view. If you do not want this, use `:AgendaViewWithTags`
 
+**Behavior**:
 + If the task has a scheduled time but no deadline time, it is shown on the scheduled day. Also, it is shown today until finished.
 + If the task has a deadline time but no scheduled time, it is shown on the deadline day. Also, based on the configuration, if today is close to the deadline, it's shown today.
 + If the task has both a deadline and scheduled time, it is shown in both the deadline and scheduled time. Also, if today is between these times, it is shown today.
