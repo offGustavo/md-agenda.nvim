@@ -24,6 +24,30 @@ M.splitFoldmarkerString = function()
     return result
 end
 
+
+local function isDirectory(path)
+    local stat = vim.loop.fs_stat(path)
+    return stat and stat.type == 'directory'
+end
+
+M.listAgendaFiles = function()
+    local agendaFiles = {}
+    for _,agendaFilePath in ipairs(M.config.agendaFiles) do
+        agendaFilePath = vim.fn.expand(agendaFilePath)
+
+        if isDirectory(agendaFilePath) then
+            local fileList = vim.fn.systemlist("rg --files --glob '!.*' --glob '*.md' " .. agendaFilePath)
+            for _,oneFile in ipairs(fileList) do
+                table.insert(agendaFiles, oneFile)
+            end
+        else
+            table.insert(agendaFiles, agendaFilePath)
+        end
+    end
+
+    return agendaFiles
+end
+
 M.parseTaskTime = function(timeString)
 --\{{{
     --time string's format: 2025-12-30 18:05 +1d (the last one is the repeat interval and is optional)

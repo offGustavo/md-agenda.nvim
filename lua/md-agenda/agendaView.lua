@@ -31,8 +31,8 @@ local function getAgendaTasks(startTimeUnix, endTimeUnix)
         dayAgenda=true
     end]]
 
-    for _,agendaFilePath in ipairs(common.config.agendaFiles) do
-        local file_content = vim.fn.readfile(vim.fn.expand(agendaFilePath))
+    for _,agendaFilePath in ipairs(common.listAgendaFiles()) do
+        local file_content = vim.fn.readfile(agendaFilePath)
         if file_content then
             --also get file header
             local lineNumber = 0

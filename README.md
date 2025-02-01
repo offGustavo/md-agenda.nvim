@@ -5,14 +5,15 @@ If you had found a bug or you have a good idea, please open an issue.
 
 ## Installation
 ### Requirements
-- [nvim-telescope/telescope.nvim](https://github.com/nvim-telescope/telescope.nvim)
+- [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim)
+- [ripgrep](https://github.com/BurntSushi/ripgrep)
 
 ### Using lazy.nvim
 ```lua
 {"zenarvus/md-agenda.nvim",
     config = function ()
         require("md-agenda").setup({
-            agendaFiles = {"~/notes/agenda.md", "~/notes/habits.md"} --required, set the location of agenda files
+            agendaFiles = {"~/notes/agenda.md", "~/notes/habits.md", "~/notes/agendafiles/"} --required, set the location of agenda files
 
             --optional
             agendaViewPageItems=10 --How many days should be in one agenda view page? - default: 10
