@@ -34,6 +34,36 @@ vim.api.nvim_create_user_command("TaskFilterByTag", function (opts)
     filterByTags = args
 end, { nargs = '*' })
 
+------------------
+
+--Function to show times in agenda items only if they are different than 00:00
+local function showTimeStrInAgendaItem(timeStr)
+    local hourandminute = timeStr:match("([0-9]+:[0-9]+)")
+    if hourandminute ~= "00:00" then
+        return hourandminute.." | "
+
+    else return "" end
+end
+
+--Function to show remaining days or how many days passed from deadline or scheduled time.
+local function remainingOrPassedDays(fromDate ,targetDate)
+    local fYear, fMonth, fDay = fromDate:match("([0-9]+)-([0-9]+)-([0-9]+)")
+    local fUnixTime = os.time({year=fYear, month=fMonth, day=fDay})
+
+    local tYear, tMonth, tDay = targetDate:match("([0-9]+)-([0-9]+)-([0-9]+)")
+    local tUnixTime = os.time({year=tYear, month=tMonth, day=tDay})
+
+    local daysBetweenThem = math.floor((tUnixTime - fUnixTime) / common.oneDay)
+
+    --if the target date was in the past
+    if daysBetweenThem < 0 then
+        return -1*daysBetweenThem.."d ago"
+    --if the target time is in the future
+    else
+        return daysBetweenThem.."d left"
+    end
+end
+
 ---------------AGENDA VIEW---------------
 local function getAgendaTasks(startTimeUnix, endTimeUnix)
     local currentDateTable = os.date("*t")
@@ -101,12 +131,15 @@ local function getAgendaTasks(startTimeUnix, endTimeUnix)
                     if scheduled and (not deadline) then
                         local scheduledDate=scheduledTimeStr:match("([0-9]+%-[0-9]+%-[0-9]+)")
                         if days[scheduledDate] and days[scheduledDate]["exists"] then
-                            table.insert(days[scheduledDate]["tasks"], "Scheduled: "..scheduledTimeStr:match("([0-9]+:[0-9]+)").." | "..taskType.." "..title)
+                            table.insert(days[scheduledDate]["tasks"],
+                                "Scheduled: "..showTimeStrInAgendaItem(scheduledTimeStr)..taskType.." "..title)
                         end
 
                         --show the task in today until its done, as it has a scheduled date but no deadline
-                        if days[currentDateStr] and (parsedScheduled["unixTime"] < currentDayStart) and taskType=="TODO" then
-                            table.insert(days[currentDateStr]["tasks"], taskType.." "..title.." (SC AT: "..os.date("%Y-%m-%d %H:%M",parsedScheduled["unixTime"])..")")
+                        if taskType=="TODO" and days[currentDateStr] and (parsedScheduled["unixTime"] < currentDayStart) then
+                            table.insert(days[currentDateStr]["tasks"],
+                                taskType.." "..title.." (SC: "..remainingOrPassedDays(currentDateStr, scheduledTimeStr)..")"
+                            )
                         end
 
                     --if only deadline exists
@@ -114,14 +147,18 @@ local function getAgendaTasks(startTimeUnix, endTimeUnix)
                         --insert text to deadline
                         local deadlineDate=deadlineTimeStr:match("([0-9]+%-[0-9]+%-[0-9]+)")
                         if days[deadlineDate] and days[deadlineDate]["exists"] then
-                            table.insert(days[deadlineDate]["tasks"], "Deadline: "..deadlineTimeStr:match("([0-9]+:[0-9]+)").." | "..taskType.." "..title)
+                            table.insert(days[deadlineDate]["tasks"],
+                                "Deadline: "..showTimeStrInAgendaItem(deadlineTimeStr)..taskType.." "..title
+                            )
                         end
                         --insert text to current date if the current date is close to task deadline by n days
                         --also if current date is not higher than the task deadline originally
                         if days[currentDateStr] and (currentDayStart < parsedDeadline["unixTime"]) and
                         (currentDayStart + ((common.config.remindDeadlineInDays+1)*common.oneDay) > parsedDeadline["unixTime"]) then
 
-                            table.insert(days[currentDateStr]["tasks"], taskType.." "..title.." (DL AT: "..os.date("%Y-%m-%d %H:%M",parsedDeadline["unixTime"])..")")
+                            table.insert(days[currentDateStr]["tasks"],
+                                taskType.." "..title.." (DL: "..remainingOrPassedDays(currentDateStr, deadlineTimeStr)..")"
+                            )
                         end
 
                     --if both scheduled and deadline exists
@@ -129,25 +166,33 @@ local function getAgendaTasks(startTimeUnix, endTimeUnix)
                         --insert text to scheduled date
                         local scheduledDate=scheduledTimeStr:match("([0-9]+%-[0-9]+%-[0-9]+)")
                         if days[scheduledDate] and days[scheduledDate]["exists"] then
-                            table.insert(days[scheduledDate]["tasks"], "Scheduled: "..taskType.." "..title.." (DL AT: "..os.date("%Y-%m-%d %H:%M",parsedDeadline["unixTime"])..")")
+                            table.insert(days[scheduledDate]["tasks"],
+                                "Scheduled: "..taskType.." "..title.." (DL: "..remainingOrPassedDays(scheduledDate, deadlineTimeStr)..")"
+                            )
                         end
                         --insert text to deadline date
                         local deadlineDate=deadlineTimeStr:match("([0-9]+%-[0-9]+%-[0-9]+)")
                         if days[deadlineDate] and days[deadlineDate]["exists"] then
-                            table.insert(days[deadlineDate]["tasks"], "Deadline: "..deadlineTimeStr:match("([0-9]+:[0-9]+)").." | "..taskType.." "..title)
+                            table.insert(days[deadlineDate]["tasks"],
+                                "Deadline: "..showTimeStrInAgendaItem(deadlineTimeStr)..taskType.." "..title
+                            )
                         end
                         --insert text to current date if its between scheduled and deadline date
                         --TODO: what happens if the current day is the same day with deadline or scheduled time? fix it.
                         if days[currentDateStr] and
                         (currentDayStart < parsedDeadline["unixTime"]) and (parsedScheduled["unixTime"] < currentDayStart) then
-                            table.insert(days[currentDateStr]["tasks"], taskType.." "..title.." (DL AT: "..os.date("%Y-%m-%d %H:%M",parsedDeadline["unixTime"])..")")
+                            table.insert(days[currentDateStr]["tasks"],
+                                taskType.." "..title.." (DL: "..remainingOrPassedDays(currentDateStr, deadlineTimeStr)..")"
+                            )
                         end
 
                     --if both scheduled and deadline times does not exist
                     elseif (not scheduled) and (not deadline) then
                         --show the task in today if its not finished
                         if days[currentDateStr] and taskType=="TODO" then
-                            table.insert(days[currentDateStr]["tasks"], taskType.." "..title)
+                            table.insert(days[currentDateStr]["tasks"],
+                                taskType.." "..title
+                            )
                         end
                     end
 
@@ -166,7 +211,9 @@ local function getAgendaTasks(startTimeUnix, endTimeUnix)
                             if parsedScheduled["unixTime"] <= sdUnixTime and
                             scheduledTimeStr:match("([0-9]+%-[0-9]+%-[0-9]+)") ~= sortedDate then
                                 if common.IsDateInRangeOfGivenRepeatingTimeStr(scheduledTimeStr, sortedDate) then
-                                    table.insert(days[sortedDate]["tasks"], "Scheduled: "..scheduledTimeStr:match("([0-9]+:[0-9]+)").." | "..taskType.." "..title)
+                                    table.insert(days[sortedDate]["tasks"],
+                                        "Scheduled: "..showTimeStrInAgendaItem(scheduledTimeStr)..taskType.." "..title
+                                    )
                                 end
                             end
                         end
@@ -182,7 +229,9 @@ local function getAgendaTasks(startTimeUnix, endTimeUnix)
                             if parsedDeadline["unixTime"] <= sdUnixTime and
                             deadlineTimeStr:match("([0-9]+%-[0-9]+%-[0-9]+)") ~= sortedDate then
                                 if common.IsDateInRangeOfGivenRepeatingTimeStr(deadlineTimeStr, sortedDate) then
-                                    table.insert(days[sortedDate]["tasks"], "Deadline: "..deadlineTimeStr:match("([0-9]+:[0-9]+)").." | "..taskType.." "..title)
+                                    table.insert(days[sortedDate]["tasks"],
+                                        "Deadline: "..showTimeStrInAgendaItem(deadlineTimeStr)..taskType.." "..title
+                                    )
                                 end
                             end
                         end
@@ -222,11 +271,11 @@ local function renderAgendaView()
 
     vim.cmd("highlight deadline guifg=red ctermfg=red")
     vim.cmd("syntax match deadline /Deadline:/")
-    vim.cmd("syntax match deadline /(DL AT: \\+.*)/")
+    vim.cmd("syntax match deadline /(DL: \\+.*)/")
 
     vim.cmd("highlight scheduled guifg=cyan ctermfg=cyan")
     vim.cmd("syntax match scheduled /Scheduled:/")
-    vim.cmd("syntax match scheduled /(SC AT: \\+.*)/")
+    vim.cmd("syntax match scheduled /(SC: \\+.*)/")
 
     vim.cmd("highlight tag guifg=blue ctermfg=blue")
     vim.cmd("syntax match tag /\\#[a-zA-Z0-9]\\+/")
