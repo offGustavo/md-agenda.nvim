@@ -35,13 +35,10 @@ M.saveRemoteAgendaFiles = function()
     for _,agendaFilePath in ipairs(M.config.agendaFiles) do
         local fileName = agendaFilePath:match("^[a-z]+://.+/(.+%.md)$")
         if fileName then
-            local command = string.format("curl -s %s", agendaFilePath)
+            local command = string.format("curl -s --fail %s", agendaFilePath)
             local body = vim.fn.system(command)
             local code = vim.v.shell_error
 
-            if code ~= 0 then
-                error("Error fetching file: " .. body)
-            end
             if not body or code ~= 0 then
                 print("Failed to get remote "..fileName)
                 goto continue
@@ -53,6 +50,7 @@ M.saveRemoteAgendaFiles = function()
                 local success, err = vim.loop.fs_mkdir(cachePath, 511) -- 511 is the permission (755 in octal)
                 if not success then
                     print("Error creating directory: " .. err)
+                    goto continue
                 end
             end
 
@@ -71,7 +69,11 @@ M.listAgendaFiles = function()
         --if its an url that contains markdown file
         local fileName = agendaFilePath:match("^[a-z]+://.+/(.+%.md)$")
         if fileName then
-            table.insert(agendaFiles, cachePath.."/"..fileName)
+            local filePath = cachePath.."/"..fileName
+            local fileStats = vim.loop.fs_stat(filePath)
+            if fileStats and fileStats.type == "file" then
+                table.insert(agendaFiles, filePath)
+            end
 
         --if its a local file
         else
