@@ -2,7 +2,7 @@ local common = require("md-agenda.common")
 
 local vim = vim
 
-local filterByTags = {} --{"#event", "#work"}
+local filterByTags = {} --{"event", "work"}
 --function for filtering tasks based on tags
 local function includeTask(taskTitle)
     --if tag filter is empty,
@@ -12,7 +12,7 @@ local function includeTask(taskTitle)
     --if tag filter has tags for filter
     else
         for _, filterTag in ipairs(filterByTags) do
-            if taskTitle:match(filterTag) then
+            if taskTitle:match("#"..filterTag) or taskTitle:match(":"..filterTag..":") then
                 return true
             end
         end
@@ -28,7 +28,7 @@ end, {})
 --Filter agenda view 
 vim.api.nvim_create_user_command("TaskFilterByTag", function (opts)
     local args = {}
-    for arg in opts.args:gmatch("#[a-zA-Z0-9]") do
+    for arg in opts.args:gmatch("[a-zA-Z0-9]+") do
         table.insert(args, arg)
     end
     filterByTags = args
@@ -297,6 +297,7 @@ local function renderAgendaView()
 
     vim.cmd("highlight tag guifg=blue ctermfg=blue")
     vim.cmd("syntax match tag /\\#[a-zA-Z0-9]\\+/")
+    vim.cmd("syntax match tag /:[a-zA-Z0-9]\\+:/")
 
     local renderLines = {}
 

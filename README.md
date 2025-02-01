@@ -59,7 +59,7 @@ Here are some example tasks:
 ```md
 # TODO: Learn to tie your shoes #tag
 
-# TODO: Mid-term exams #university
+# TODO: Mid-term exams :university:vimwikiTag:
 - Deadline: `2025-02-15 00:00`
 - Scheduled: `2025-02-06 00:00`
 

@@ -163,6 +163,7 @@ local function renderHabitView()
 
     vim.cmd("highlight tag guifg=blue ctermfg=blue")
     vim.cmd("syntax match tag /\\#[a-zA-Z0-9]\\+/")
+    vim.cmd("syntax match tag /:[a-zA-Z0-9]\\+:/")
 
     local renderLines = {}
 
