@@ -36,14 +36,32 @@ local function saveRemoteAgendaFiles()
     for _,agendaFilePath in ipairs(M.config.agendaFiles) do
         local fileName = agendaFilePath:match("^[a-z]+://.+/(.+%.md)$")
         if fileName then
-            local body, code = http.request(agendaFilePath)
-            if not body then error(code) end
+            local command = string.format("curl -s %s", agendaFilePath)
+            local body = vim.fn.system(command)
+            local code = vim.v.shell_error
+
+            if code ~= 0 then
+                error("Error fetching file: " .. body)
+            end
+            if not body or code ~= 0 then
+                print("Failed to get remote "..fileName)
+                goto continue
+            end
 
             --save file to the cache folder
+            if not isDirectory(cachePath) then
+                -- Directory does not exist, create it
+                local success, err = vim.loop.fs_mkdir(cachePath, 511) -- 511 is the permission (755 in octal)
+                if not success then
+                    print("Error creating directory: " .. err)
+                end
+            end
+
             local f = assert(io.open(cachePath.."/"..fileName, 'wb'))
             f:write(body)
             f:close()
         end
+        ::continue::
     end
 end
 --Save remote agenda files to the local on start
