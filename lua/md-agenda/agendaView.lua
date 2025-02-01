@@ -281,7 +281,8 @@ local function renderAgendaView()
     vim.api.nvim_buf_set_option(bufNumber, "modified", false)
 end
 
-vim.api.nvim_create_user_command('AgendaView', function()renderAgendaView()end, {})
+vim.api.nvim_create_user_command('AgendaView', function()filterByTags={};renderAgendaView()end, {})
+vim.api.nvim_create_user_command('AgendaViewWithTags', function()renderAgendaView()end, {})
 
 vim.api.nvim_create_user_command('NextAgendaPage', function()
     relativePage=relativePage+1

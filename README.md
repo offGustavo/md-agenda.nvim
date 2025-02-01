@@ -37,8 +37,7 @@ If you had found a bug or you have a good idea, please open an issue.
         --optional: create your own agenda view command to show tasks with a specific tag only
         vim.api.nvim_create_user_command("WorkAgenda", function()
             vim.cmd("TaskFilterByTag #work") --first filter with tags
-            vim.cmd("AgendaView") --then run the agenda view
-            vim.cmd("TaskResetTagFilter") --finally, reset the filter to stop filtering by #work tag.
+            vim.cmd("AgendaViewWithTags") --then run the agenda view with tag filters
         end, {})
     end
 },
@@ -140,12 +139,13 @@ If the task is a repeating task, the completed task is directly saved to the log
 
 ## Agenda View
 Use `:AgendaView` command to open agenda view. To switch between pages, use `:PrevAgendaPage` and `:NextAgendaPage`. (Pages are relative to today)
+- `:AgendaView` command resets all tag filters before opening the view. If you do not want this, use `:AgendaViewWithTags`
 
-- If the task has a scheduled time but no deadline time, it is shown on the scheduled day. Also, it is shown today until finished.
-- If the task has a deadline time but no scheduled time, it is shown on the deadline day. Also, based on the configuration, if today is close to the deadline, it's shown today.
-- If the task has both a deadline and scheduled time, it is shown in both the deadline and scheduled time. Also, if today is between these times, it is shown today.
-- If the task is a repeating task, it is shown in the scheduled time and the next days based on the repeat indicator until the deadline.
-- If the task has no deadline nor scheduled time, it is shown today.
++ If the task has a scheduled time but no deadline time, it is shown on the scheduled day. Also, it is shown today until finished.
++ If the task has a deadline time but no scheduled time, it is shown on the deadline day. Also, based on the configuration, if today is close to the deadline, it's shown today.
++ If the task has both a deadline and scheduled time, it is shown in both the deadline and scheduled time. Also, if today is between these times, it is shown today.
++ If the task is a repeating task, it is shown in the scheduled time and the next days based on the repeat indicator until the deadline.
++ If the task has no deadline nor scheduled time, it is shown today.
 
 ### Tags
 You can filter tasks based on their tags in the agenda view by using `:TaskFilterByTag` command.
