@@ -13,7 +13,12 @@ If you had found a bug or you have a good idea, please open an issue.
 {"zenarvus/md-agenda.nvim",
     config = function ()
         require("md-agenda").setup({
-            agendaFiles = {"~/notes/agenda.md", "~/notes/habits.md", "~/notes/agendafiles/"} --required, set the location of agenda files
+            --required
+            agendaFiles = {
+                "~/notes/agenda.md", "~/notes/habits.md", --singular files
+                "~/notes/agendafiles/", --folders
+                "https://raw.githubusercontent.com/zenarvus/md-agenda.nvim/refs/heads/main/specialDays/international-basic.md" --urls
+            }
 
             --optional
             agendaViewPageItems=10 --How many days should be in one agenda view page? - default: 10
@@ -36,8 +41,8 @@ If you had found a bug or you have a good idea, please open an issue.
 
         --optional: create your own agenda view command to show tasks with a specific tag only
         vim.api.nvim_create_user_command("WorkAgenda", function()
-            vim.cmd("TaskFilterByTag #work") --first filter with tags
-            vim.cmd("AgendaViewWithTags") --then run the agenda view with tag filters
+            vim.cmd("TaskFilterByTag #work") --first, filter with tags
+            vim.cmd("AgendaViewWithTags") --then, run the agenda view with tag filters
         end, {})
     end
 },
@@ -45,8 +50,7 @@ If you had found a bug or you have a good idea, please open an issue.
 
 ## Roadmap
 - Support for different calendars (low priority)
-- Support for remote markdown files in the views. A good way to show events based on different calendars. (low priority)
-- Using regexp for folding instead of markers. (medium priority)
+- Using a custom function for folding instead of markers. (medium priority)
 - Showing tasks' completion times in the agenda view. (high priority)
 - Redesigning the habit and agenda views. (high priority)
 
