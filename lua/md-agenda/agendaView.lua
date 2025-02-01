@@ -162,8 +162,9 @@ local function getAgendaTasks(startTimeUnix, endTimeUnix)
                                 break
                             end
 
-                            --Only show in future dates
-                            if parsedScheduled["unixTime"] <= sdUnixTime then
+                            --Only show in the future dates and not in the scheduled day as its already inserted to that day in the above codes.
+                            if parsedScheduled["unixTime"] <= sdUnixTime and
+                            scheduledTimeStr:match("([0-9]+%-[0-9]+%-[0-9]+)") ~= sortedDate then
                                 if common.IsDateInRangeOfGivenRepeatingTimeStr(scheduledTimeStr, sortedDate) then
                                     table.insert(days[sortedDate]["tasks"], "Scheduled: "..scheduledTimeStr:match("([0-9]+:[0-9]+)").." | "..taskType.." "..title)
                                 end
@@ -178,7 +179,8 @@ local function getAgendaTasks(startTimeUnix, endTimeUnix)
                             local sdUnixTime = os.time({year=sdYear, month=sdMonth, day=sdDay})
 
                             --Only show in future dates
-                            if parsedDeadline["unixTime"] <= sdUnixTime then
+                            if parsedDeadline["unixTime"] <= sdUnixTime and
+                            deadlineTimeStr:match("([0-9]+%-[0-9]+%-[0-9]+)") ~= sortedDate then
                                 if common.IsDateInRangeOfGivenRepeatingTimeStr(deadlineTimeStr, sortedDate) then
                                     table.insert(days[sortedDate]["tasks"], "Deadline: "..deadlineTimeStr:match("([0-9]+:[0-9]+)").." | "..taskType.." "..title)
                                 end
