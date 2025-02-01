@@ -30,18 +30,46 @@ local function isDirectory(path)
     return stat and stat.type == 'directory'
 end
 
+local http = require("socket.http")
+local cachePath = vim.fn.stdpath("data").."/md-agenda"
+local function saveRemoteAgendaFiles()
+    for _,agendaFilePath in ipairs(M.config.agendaFiles) do
+        local fileName = agendaFilePath:match("^[a-z]+://.+/(.+%.md)$")
+        if fileName then
+            local body, code = http.request(agendaFilePath)
+            if not body then error(code) end
+
+            --save file to the cache folder
+            local f = assert(io.open(cachePath.."/"..fileName, 'wb'))
+            f:write(body)
+            f:close()
+        end
+    end
+end
+--Save remote agenda files to the local on start
+saveRemoteAgendaFiles()
+
 M.listAgendaFiles = function()
     local agendaFiles = {}
     for _,agendaFilePath in ipairs(M.config.agendaFiles) do
-        agendaFilePath = vim.fn.expand(agendaFilePath)
 
-        if isDirectory(agendaFilePath) then
-            local fileList = vim.fn.systemlist("rg --files --glob '!.*' --glob '*.md' " .. agendaFilePath)
-            for _,oneFile in ipairs(fileList) do
-                table.insert(agendaFiles, oneFile)
-            end
+        --if its an url that contains markdown file
+        local fileName = agendaFilePath:match("^[a-z]+://.+/(.+%.md)$")
+        if fileName then
+            table.insert(agendaFiles, cachePath.."/"..fileName)
+
+        --if its a local file
         else
-            table.insert(agendaFiles, agendaFilePath)
+            agendaFilePath = vim.fn.expand(agendaFilePath)
+
+            if isDirectory(agendaFilePath) then
+                local fileList = vim.fn.systemlist("rg --files --glob '!.*' --glob '*.md' " .. agendaFilePath)
+                for _,oneFile in ipairs(fileList) do
+                    table.insert(agendaFiles, oneFile)
+                end
+            else
+                table.insert(agendaFiles, agendaFilePath)
+            end
         end
     end
 
