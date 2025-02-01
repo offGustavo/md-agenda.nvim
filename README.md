@@ -7,6 +7,7 @@ If you had found a bug or you have a good idea, please open an issue.
 ### Requirements
 - [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim)
 - [ripgrep](https://github.com/BurntSushi/ripgrep)
+- curl
 
 ### Using lazy.nvim
 ```lua
