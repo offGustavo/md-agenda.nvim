@@ -119,7 +119,7 @@ local function getAgendaTasks(startTimeUnix, endTimeUnix)
                         end
                     end
 
-                    --if task is a repeating task, show the incoming days at the agenda until the deadline
+                    --if task is a repeating task (repeat indicator on the scheduled), show the incoming days at the agenda until the deadline
                     if parsedScheduled and parsedScheduled["nextUnixTime"] then
                         for _, sortedDate in ipairs(sortedDates) do
                             local sdYear, sdMonth, sdDay = sortedDate:match("([0-9]+)-([0-9]+)-([0-9]+)")
@@ -134,6 +134,21 @@ local function getAgendaTasks(startTimeUnix, endTimeUnix)
                             if parsedScheduled["unixTime"] <= sdUnixTime then
                                 if common.IsDateInRangeOfGivenRepeatingTimeStr(scheduledTimeStr, sortedDate) then
                                     table.insert(days[sortedDate]["tasks"], "Scheduled: "..scheduledTimeStr:match("([0-9]+:[0-9]+)").." | "..taskType.." "..title)
+                                end
+                            end
+                        end
+                    end
+
+                    --if task is a repeating task (repeat indicator on the deadline), show the incoming days at the agenda.
+                    if parsedDeadline and parsedDeadline["nextUnixTime"] then
+                        for _, sortedDate in ipairs(sortedDates) do
+                            local sdYear, sdMonth, sdDay = sortedDate:match("([0-9]+)-([0-9]+)-([0-9]+)")
+                            local sdUnixTime = os.time({year=sdYear, month=sdMonth, day=sdDay})
+
+                            --Only show in future dates
+                            if parsedDeadline["unixTime"] <= sdUnixTime then
+                                if common.IsDateInRangeOfGivenRepeatingTimeStr(deadlineTimeStr, sortedDate) then
+                                    table.insert(days[sortedDate]["tasks"], "Deadline: "..deadlineTimeStr:match("([0-9]+:[0-9]+)").." | "..taskType.." "..title)
                                 end
                             end
                         end
