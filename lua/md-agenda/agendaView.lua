@@ -131,8 +131,14 @@ local function getAgendaTasks(startTimeUnix, endTimeUnix)
                     if scheduled and (not deadline) then
                         local scheduledDate=scheduledTimeStr:match("([0-9]+%-[0-9]+%-[0-9]+)")
                         if days[scheduledDate] and days[scheduledDate]["exists"] then
-                            table.insert(days[scheduledDate]["tasks"],
-                                "Scheduled: "..showTimeStrInAgendaItem(scheduledTimeStr)..taskType.." "..title)
+                            --if its info, do not show "Scheduled:" text
+                            if taskType=="INFO" then
+                                table.insert(days[scheduledDate]["tasks"],
+                                    showTimeStrInAgendaItem(scheduledTimeStr)..taskType.." "..title)
+                            else
+                                table.insert(days[scheduledDate]["tasks"],
+                                    "Scheduled: "..showTimeStrInAgendaItem(scheduledTimeStr)..taskType.." "..title)
+                            end
                         end
 
                         --show the task in today until its done, as it has a scheduled date but no deadline
@@ -166,9 +172,15 @@ local function getAgendaTasks(startTimeUnix, endTimeUnix)
                         --insert text to scheduled date
                         local scheduledDate=scheduledTimeStr:match("([0-9]+%-[0-9]+%-[0-9]+)")
                         if days[scheduledDate] and days[scheduledDate]["exists"] then
-                            table.insert(days[scheduledDate]["tasks"],
-                                "Scheduled: "..taskType.." "..title.." (DL: "..remainingOrPassedDays(scheduledDate, deadlineTimeStr)..")"
-                            )
+                            if taskType == "INFO" then
+                                table.insert(days[scheduledDate]["tasks"],
+                                    taskType.." "..title.." (DL: "..remainingOrPassedDays(scheduledDate, deadlineTimeStr)..")"
+                                )
+                            else
+                                table.insert(days[scheduledDate]["tasks"],
+                                    "Scheduled: "..taskType.." "..title.." (DL: "..remainingOrPassedDays(scheduledDate, deadlineTimeStr)..")"
+                                )
+                            end
                         end
                         --insert text to deadline date
                         local deadlineDate=deadlineTimeStr:match("([0-9]+%-[0-9]+%-[0-9]+)")
@@ -189,7 +201,7 @@ local function getAgendaTasks(startTimeUnix, endTimeUnix)
                     --if both scheduled and deadline times does not exist
                     elseif (not scheduled) and (not deadline) then
                         --show the task in today if its not finished
-                        if days[currentDateStr] and taskType=="TODO" then
+                        if taskType=="TODO" and days[currentDateStr] then
                             table.insert(days[currentDateStr]["tasks"],
                                 taskType.." "..title
                             )
@@ -211,9 +223,15 @@ local function getAgendaTasks(startTimeUnix, endTimeUnix)
                             if parsedScheduled["unixTime"] <= sdUnixTime and
                             scheduledTimeStr:match("([0-9]+%-[0-9]+%-[0-9]+)") ~= sortedDate then
                                 if common.IsDateInRangeOfGivenRepeatingTimeStr(scheduledTimeStr, sortedDate) then
-                                    table.insert(days[sortedDate]["tasks"],
-                                        "Scheduled: "..showTimeStrInAgendaItem(scheduledTimeStr)..taskType.." "..title
-                                    )
+                                    if taskType == "INFO" then
+                                        table.insert(days[sortedDate]["tasks"],
+                                            showTimeStrInAgendaItem(scheduledTimeStr)..taskType.." "..title
+                                        )
+                                    else
+                                        table.insert(days[sortedDate]["tasks"],
+                                            "Scheduled: "..showTimeStrInAgendaItem(scheduledTimeStr)..taskType.." "..title
+                                        )
+                                    end
                                 end
                             end
                         end
