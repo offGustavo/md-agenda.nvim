@@ -96,7 +96,6 @@ An agenda item for habit tracking.
 **INFO:**\
 Only for viewing in the agenda view. Useful for holidays, anniversaries etc.
 - It must contain a repeating "Scheduled" property.
-- It should contain a "Deadline" property if, for example, holiday is spread to multiple days.
 
 **DONE:**\
 If a task item is completed before the deadline, it is marked as done.
@@ -111,15 +110,15 @@ To make a task repeating, you should add the repeat indicator at the end of the 
 - You cannot add the repeat indicator to both of them at the same task.
 
 **Repeat Indicator Types**:
-- "+": Shifts the date to, for example, one month (+1m) after the scheduled time or deadline. It can be still in the past and overdue even after marking it.
-- "++": Shifts the date by, for example, at least one week (++1w) from scheduled time or deadline, but also by as many weeks as it takes to get this date into the future.
-- ".+": Shifts the date to, for example, one month (.+1m) after today.
+- **"+"**: Shifts the date to, for example, one month (+1m) after the scheduled time or deadline. It can be still in the past and overdue even after marking it.
+- **"++"**: Shifts the date by, for example, at least one week (++1w) from scheduled time or deadline, but also by as many weeks as it takes to get this date into the future.
+- **".+"**: Shifts the date to, for example, one month (.+1m) after today.
 
 **Repeat Indicator Intervals**:
-- "d": n day after.
-- "w": n Week after, same weekday.
-- "m": n Month after, same day of the month.
-- "y": n Year after, same month and day of the month.
+- **"d"**: n day after.
+- **"w"**: n Week after, same weekday.
+- **"m"**: n Month after, same day of the month.
+- **"y"**: n Year after, same month and day of the month.
 
 **Progress Indicator**:\
 If you want to save the progress to the logbook, place progress indicator to the task.
