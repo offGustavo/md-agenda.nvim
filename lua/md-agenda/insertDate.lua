@@ -77,7 +77,7 @@ local function datePicker(insertType)
                 return {
                     value = value,
                     display = display,
-                    ordinal = value
+                    ordinal = display
                 }
             end,
         },
