@@ -30,6 +30,7 @@ local function isDirectory(path)
     return stat and stat.type == 'directory'
 end
 
+--(DEPRECATED FUNCTION)
 local cachePath = vim.fn.stdpath("data").."/md-agenda"
 M.saveRemoteAgendaFiles = function()
     for _,agendaFilePath in ipairs(M.config.agendaFiles) do
@@ -66,7 +67,7 @@ M.listAgendaFiles = function()
     local agendaFiles = {}
     for _,agendaFilePath in ipairs(M.config.agendaFiles) do
 
-        --if its an url that contains markdown file
+        --if its an url that contains markdown file (DEPRECATED FUNCTIONALITY)
         local fileName = agendaFilePath:match("^[a-z]+://.+/(.+%.md)$")
         if fileName then
             local filePath = cachePath.."/"..fileName

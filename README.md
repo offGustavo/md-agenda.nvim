@@ -7,7 +7,6 @@ If you had found a bug or you have a good idea, please open an issue.
 ### Requirements
 - [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim)
 - [ripgrep](https://github.com/BurntSushi/ripgrep)
-- curl
 
 ### Using lazy.nvim
 ```lua
@@ -18,7 +17,6 @@ If you had found a bug or you have a good idea, please open an issue.
             agendaFiles = {
                 "~/notes/agenda.md", "~/notes/habits.md", --singular files
                 "~/notes/agendafiles/", --folders
-                "https://raw.githubusercontent.com/zenarvus/md-agenda.nvim/refs/heads/main/specialDays/international-basic.md" --urls
             }
 
             --optional
@@ -52,6 +50,7 @@ If you had found a bug or you have a good idea, please open an issue.
 ## Roadmap
 - Using a custom function for folding instead of markers. (medium priority)
 - Showing tasks' completion times in the agenda view. (high priority)
+- An interval type to support weird US national dates. (Third Monday in January etc.) (medium priority)
 
 ---
 
@@ -169,6 +168,11 @@ To open the habit view, use `:HabitView` command. Only habit tasks shown in the 
   + That past scheduled day is shown in **dark yellow**.
 - **Red**: If task had to be done that day but it was not.
 - **Gray**: If the deadline on that time.
+
+### Special Days and Holidays
+To show special days like april fools' day in the graph view, download the files you want in [specialDays](https://github.com/zenarvus/md-agenda.nvim/tree/main/specialDays) folder and add them to the agendaFiles configuration. They only contain events in fixed, non changing dates in Gregorian calendar.
+
+You may consider creating your own and, if it contains non-fixed dates, updating with a script.
 
 ## Date Selection
 To insert a deadline or scheduled time, place cursor to the task and use one of the `:TaskDeadline` or `:TaskScheduled` commands.\
