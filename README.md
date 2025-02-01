@@ -1,6 +1,8 @@
 # md-agenda.nvim
 Org-Agenda like, Markdown time and task management plugin for NeoVim.
 
+If you had found a bug or you have a good idea, please open an issue.
+
 ## Installation
 ### Requirements
 - [nvim-telescope/telescope.nvim](https://github.com/nvim-telescope/telescope.nvim)
@@ -36,13 +38,11 @@ Org-Agenda like, Markdown time and task management plugin for NeoVim.
 
 ## Roadmap
 - Support for different calendars (low priority)
-- Support for remote markdown files in the views. A good way to show holidays and important events. (high priority)
+- Support for remote markdown files in the views. A good way to show events based on different calendars. (low priority)
 - Using regexp for folding instead of markers. (medium priority)
 - Showing tasks' completion times in the agenda view. (high priority)
 - Redesigning the habit and agenda views. (high priority)
-
-## Troubleshooting
-Currently, I only fix the bugs I encounter and do not test the every case. If you find a bug, please open an issue.
+- Tag support with filtering based on tags. (medium priority)
 
 ---
 
@@ -76,10 +76,9 @@ Here are some example tasks:
 ```
 ### Agenda Item Types
 This plugin considers markdown headers that starts with these strings as agenda items:
-- "TODO:", "HABIT:", "INFO:", "DONE:", "DUE:"
 
 **TODO:**\
-Regular task item. You should do that.
+Regular agenda item that should be done.
 - Can hold "Deadline" and "Scheduled" properties.
 - Can be a repeating task.
 
@@ -107,14 +106,19 @@ To make a task repeating, you should add the repeat indicator at the end of the 
 
 **Repeat Indicator Types**:
 - "+": Shifts the date to, for example one month (+1m) after the scheduled time or deadline. It can be still in the past and overdue even after marking it.
-- "++": Shifts the date by for example at least one week (++1d) from scheduled time or deadline, but also by as many weeks as it takes to get this date into the future.
-- ".+": Shifts the date to, for example one month (.+1m) after today.
+- "++": Shifts the date by for example, at least one week (++1w) from scheduled time or deadline, but also by as many weeks as it takes to get this date into the future.
+- ".+": Shifts the date to, for example, one month (.+1m) after today.
 
 **Repeat Indicator Intervals**:
 - "d": n day after.
 - "w": n Week after, same weekday.
 - "m": n Month after, same day of the month.
 - "y": n Year after, same month and day of the month.
+
+**Progress Indicator**:\
+If you want to save the progress to the logbook, place progress indicator to the task.\
+
+Progress indicator looks like this: (x/y). y is the goal and x is the current progress.
 
 ## Checking a Task
 To check a task, place cursor to it and use `:CheckTask` command.
@@ -140,15 +144,15 @@ Use `:AgendaView` command to open agenda view. To switch between pages, use `:Pr
 To open the habit view, use `:HabitView` command. Only habit tasks shown in the habit view.
 
 **Colors**
-- Yellow: If the task is scheduled on that time.
-- Blue: If you do not have to do the task on that time.
-- Green: If the task is done on that day.
-- Light Green: If progress had been made but the task was not done.
+- **Yellow**: If the task is scheduled on that time.
+- **Blue**: If you do not have to do the task on that time.
+- **Green**: If the task is done on that day.
+- **Light Green**: If progress had been made but the task was not done.
 - If the habit is scheduled in the past but has not been made
-  + Today is shown in yellow
-  + That past scheduled day is shown in dark yellow
-- Red: If task had to be done that day but it was not.
-- Gray: If the deadline on that time.
+  + Today is shown in **yellow**
+  + That past scheduled day is shown in **dark yellow**.
+- **Red**: If task had to be done that day but it was not.
+- **Gray**: If the deadline on that time.
 
 ## Date Selection
 To insert a deadline or scheduled time, place cursor to the task and use one of the `:TaskDeadline` or `:TaskScheduled` commands.\
