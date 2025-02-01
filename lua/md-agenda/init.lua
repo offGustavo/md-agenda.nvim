@@ -15,6 +15,9 @@ M.setup = function(opts)
         callback = function()
             vim.opt.foldmethod="marker"
             vim.opt.foldmarker = common.config.foldmarker
+
+            common.saveRemoteAgendaFiles()
+
             require("md-agenda.insertDate")
             require("md-agenda.checkTask")
             require("md-agenda.agendaView")

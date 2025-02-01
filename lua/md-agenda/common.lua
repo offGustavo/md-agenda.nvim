@@ -30,9 +30,8 @@ local function isDirectory(path)
     return stat and stat.type == 'directory'
 end
 
-local http = require("socket.http")
 local cachePath = vim.fn.stdpath("data").."/md-agenda"
-local function saveRemoteAgendaFiles()
+M.saveRemoteAgendaFiles = function()
     for _,agendaFilePath in ipairs(M.config.agendaFiles) do
         local fileName = agendaFilePath:match("^[a-z]+://.+/(.+%.md)$")
         if fileName then
@@ -64,8 +63,6 @@ local function saveRemoteAgendaFiles()
         ::continue::
     end
 end
---Save remote agenda files to the local on start
-saveRemoteAgendaFiles()
 
 M.listAgendaFiles = function()
     local agendaFiles = {}
