@@ -161,6 +161,9 @@ local function renderHabitView()
     vim.cmd("highlight today guibg=brown ctermbg=brown guifg=brown ctermfg=brown")
     vim.cmd("syntax match today /♅/")
 
+    vim.cmd("highlight tag guifg=blue ctermfg=blue")
+    vim.cmd("syntax match tag /\\#[a-zA-Z0-9]\\+/")
+
     local renderLines = {}
 
     local currentDateTable = os.date("*t")

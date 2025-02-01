@@ -2,6 +2,38 @@ local common = require("md-agenda.common")
 
 local vim = vim
 
+local filterByTags = {} --{"#event", "#work"}
+--function for filtering tasks based on tags
+local function includeTask(taskTitle)
+    --if tag filter is empty,
+    if #filterByTags == 0 then
+        return true
+
+    --if tag filter has tags for filter
+    else
+        for _, filterTag in ipairs(filterByTags) do
+            if taskTitle:match(filterTag) then
+                return true
+            end
+        end
+    end
+
+    return false
+end
+
+vim.api.nvim_create_user_command('TaskResetTagFilter', function()
+    filterByTags = {}
+end, {})
+
+--Filter agenda view 
+vim.api.nvim_create_user_command("TaskFilterByTag", function (opts)
+    local args = {}
+    for arg in opts.args:gmatch("#[a-zA-Z0-9]") do
+        table.insert(args, arg)
+    end
+    filterByTags = args
+end, { nargs = '*' })
+
 ---------------AGENDA VIEW---------------
 local function getAgendaTasks(startTimeUnix, endTimeUnix)
     local currentDateTable = os.date("*t")
@@ -40,7 +72,7 @@ local function getAgendaTasks(startTimeUnix, endTimeUnix)
                 lineNumber = lineNumber+1
 
                 local taskType,title = line:match("^#+ (.+): (.*)")
-                if (taskType=="TODO" or taskType=="DONE" or taskType=="DUE" or taskType=="INFO") and title then
+                if (taskType=="TODO" or taskType=="DONE" or taskType=="DUE" or taskType=="INFO") and title and includeTask(title) then
                     local taskProperties = common.getTaskProperties(file_content, lineNumber)
 
                     --------------------------
@@ -182,10 +214,10 @@ local function renderAgendaView()
 
     vim.cmd("highlight done guifg=green ctermfg=green")
     vim.cmd("syntax match done /DONE/")
-    
+
     vim.cmd("highlight info guifg=lightgreen ctermfg=lightgreen")
     vim.cmd("syntax match info /INFO/")
-    
+
     vim.cmd("highlight deadline guifg=red ctermfg=red")
     vim.cmd("syntax match deadline /Deadline:/")
     vim.cmd("syntax match deadline /(DL AT: \\+.*)/")
@@ -193,6 +225,9 @@ local function renderAgendaView()
     vim.cmd("highlight scheduled guifg=cyan ctermfg=cyan")
     vim.cmd("syntax match scheduled /Scheduled:/")
     vim.cmd("syntax match scheduled /(SC AT: \\+.*)/")
+
+    vim.cmd("highlight tag guifg=blue ctermfg=blue")
+    vim.cmd("syntax match tag /\\#[a-zA-Z0-9]\\+/")
 
     local renderLines = {}
 

@@ -33,6 +33,13 @@ If you had found a bug or you have a good idea, please open an issue.
 
         vim.keymap.set('n', '<A-s>', ":TaskScheduled<CR>")
         vim.keymap.set('n', '<A-d>', ":TaskDeadline<CR>")
+
+        --optional: create your own agenda view command to show tasks with a specific tag only
+        vim.api.nvim_create_user_command("WorkAgenda", function()
+            vim.cmd("TaskFilterByTag #work") --first filter with tags
+            vim.cmd("AgendaView") --then run the agenda view
+            vim.cmd("TaskResetTagFilter") --finally, reset the filter to stop filtering by #work tag.
+        end, {})
     end
 },
 ```
@@ -43,16 +50,15 @@ If you had found a bug or you have a good idea, please open an issue.
 - Using regexp for folding instead of markers. (medium priority)
 - Showing tasks' completion times in the agenda view. (high priority)
 - Redesigning the habit and agenda views. (high priority)
-- Tag support with filtering based on tags. (medium priority)
 
 ---
 
 ## Agenda Item Structure
 Here are some example tasks:
 ```md
-# TODO: Learn to tie your shoes
+# TODO: Learn to tie your shoes #tag
 
-# TODO: Mid-term exams
+# TODO: Mid-term exams #university
 - Deadline: `2025-02-15 00:00`
 - Scheduled: `2025-02-06 00:00`
 
@@ -61,7 +67,7 @@ Here are some example tasks:
 
 # HABIT: Read a book (17/30)
 - Last Completion: `2025-01-30 16:58`
-- Scheduled: `2025-01-31 00:00 +1d`
+- Scheduled: `2025-01-31 00:00 .+1d`
 <details logbook><!--{{{-->
 
  - [x] `2025-01-30 16:58` `(36/30)`
@@ -72,7 +78,7 @@ Here are some example tasks:
  - [ ] `2025-01-23 12:54` `(23/30)`
 <!--}}}--></details>
 
-# INFO: International Workers' Day
+# INFO: International Workers' Day #event
 - Scheduled: `2025-05-01 00:00 +1y`
 ```
 ### Agenda Item Types
@@ -106,8 +112,8 @@ To make a task repeating, you should add the repeat indicator at the end of the 
 - You cannot add the repeat indicator to both of them at the same task.
 
 **Repeat Indicator Types**:
-- "+": Shifts the date to, for example one month (+1m) after the scheduled time or deadline. It can be still in the past and overdue even after marking it.
-- "++": Shifts the date by for example, at least one week (++1w) from scheduled time or deadline, but also by as many weeks as it takes to get this date into the future.
+- "+": Shifts the date to, for example, one month (+1m) after the scheduled time or deadline. It can be still in the past and overdue even after marking it.
+- "++": Shifts the date by, for example, at least one week (++1w) from scheduled time or deadline, but also by as many weeks as it takes to get this date into the future.
 - ".+": Shifts the date to, for example, one month (.+1m) after today.
 
 **Repeat Indicator Intervals**:
@@ -117,7 +123,7 @@ To make a task repeating, you should add the repeat indicator at the end of the 
 - "y": n Year after, same month and day of the month.
 
 **Progress Indicator**:\
-If you want to save the progress to the logbook, place progress indicator to the task.\
+If you want to save the progress to the logbook, place progress indicator to the task.
 
 Progress indicator looks like this: (x/y). y is the goal and x is the current progress.
 
@@ -140,6 +146,12 @@ Use `:AgendaView` command to open agenda view. To switch between pages, use `:Pr
 - If the task has both a deadline and scheduled time, it is shown in both the deadline and scheduled time. Also, if today is between these times, it is shown today.
 - If the task is a repeating task, it is shown in the scheduled time and the next days based on the repeat indicator until the deadline.
 - If the task has no deadline nor scheduled time, it is shown today.
+
+### Tags
+You can filter tasks based on their tags in the agenda view by using `:TaskFilterByTag` command.
+- Example usage: `:TaskFilterByTag #tag1 #tag2`
+
+To reset the filter, use `:TaskResetTagFilter` command.
 
 ## Habit View
 To open the habit view, use `:HabitView` command. Only habit tasks shown in the habit view.
