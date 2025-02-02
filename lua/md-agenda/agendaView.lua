@@ -297,7 +297,7 @@ local function renderAgendaView()
 
     vim.cmd("highlight tag guifg=blue ctermfg=blue")
     vim.cmd("syntax match tag /\\#[a-zA-Z0-9]\\+/")
-    vim.cmd("syntax match tag /:[a-zA-Z0-9]\\+:/")
+    vim.cmd("syntax match tag /:[a-zA-Z0-9:]\\+:/")
 
     local renderLines = {}
 
@@ -352,7 +352,12 @@ local function renderAgendaView()
 end
 
 vim.api.nvim_create_user_command('AgendaView', function()filterByTags={};renderAgendaView()end, {})
-vim.api.nvim_create_user_command('AgendaViewWithTags', function()renderAgendaView()end, {})
+
+vim.api.nvim_create_user_command('AgendaViewWithTags', function()
+    print(":AgendaViewWithTags is deprecated. Use :AgendaViewWTF instead.")
+    renderAgendaView()
+end, {})
+vim.api.nvim_create_user_command('AgendaViewWTF', function()renderAgendaView()end, {})
 
 vim.api.nvim_create_user_command('NextAgendaPage', function()
     relativePage=relativePage+1

@@ -41,7 +41,7 @@ If you had found a bug or you have a good idea, please open an issue.
         --optional: create your own agenda view command to show tasks with a specific tag only
         vim.api.nvim_create_user_command("WorkAgenda", function()
             vim.cmd("TaskFilterByTag work companyA") --first, filter with tags
-            vim.cmd("AgendaViewWithTags") --then, run the agenda view with tag filters
+            vim.cmd("AgendaViewWTF") --then, run the agenda view with tag filters
         end, {})
     end
 },
@@ -150,7 +150,7 @@ If the task is a repeating task, the completed task is directly saved to the log
 
 ## Agenda View
 Use `:AgendaView` command to open agenda view. To switch between pages, use `:PrevAgendaPage` and `:NextAgendaPage`. (Pages are relative to today)
-- `:AgendaView` command resets all tag filters before opening the view. If you do not want this, use `:AgendaViewWithTags`
+- `:AgendaView` command resets all tag filters before opening the view. If you do not want this, use `:AgendaViewWTF`
 
 **Behavior**:
 + If the task has a scheduled time but no deadline time, it is shown on the scheduled day. Also, it is shown today until finished.
