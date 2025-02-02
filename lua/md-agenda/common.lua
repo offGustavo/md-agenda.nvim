@@ -105,55 +105,44 @@ M.parseTaskTime = function(timeString)
             return taskTimeMap
         end
 
-        --"+"
-        if repeatType=="+" then
-            --day
-            if repeatInterval=="d" then
-                taskTimeTable.day=taskTimeTable.day+num
-                taskTimeMap["nextUnixTime"] = os.time(taskTimeTable) - sinceTaskTimeDayStart
+        local timeTableToBeUsed = {}
+        if repeatType == "+" or repeatType == "++" then
+            --Consider task's date day start
+            timeTableToBeUsed = taskTimeTable
+            timeTableToBeUsed.hour, timeTableToBeUsed.min = 0,0
 
-            --week
-            elseif repeatInterval=="w" then
-                taskTimeTable.day=taskTimeTable.day+7*num
-                taskTimeMap["nextUnixTime"] = os.time(taskTimeTable) - sinceTaskTimeDayStart
+        elseif repeatType == ".+" then
+            --Consider today's date
+            timeTableToBeUsed = currentTimeTable
+        end
 
-            --month
-            elseif repeatInterval=="m" then
-                taskTimeTable.month = taskTimeTable.month + num
-                taskTimeMap["nextUnixTime"] = os.time(taskTimeTable) - sinceTaskTimeDayStart
+        ----------------
 
-            --year
-            elseif repeatInterval=="y" then
-                taskTimeTable.year = taskTimeTable.year + num
-                taskTimeMap["nextUnixTime"] = os.time(taskTimeTable) - sinceTaskTimeDayStart
-            end
+        --day
+        if repeatInterval=="d" then
+            timeTableToBeUsed.day=timeTableToBeUsed.day+num
+            taskTimeMap["nextUnixTime"] = os.time(timeTableToBeUsed)
 
-        --"++"
-        elseif repeatType=="++" then
-            taskTimeTable.hour, taskTimeTable.min = 0,0
-            --day
-            if repeatInterval=="d" then
-                taskTimeTable.day=taskTimeTable.day+num
-                taskTimeMap["nextUnixTime"] = os.time(taskTimeTable) - sinceTaskTimeDayStart
+        --week
+        elseif repeatInterval=="w" then
+            timeTableToBeUsed.day=timeTableToBeUsed.day+7*num
+            taskTimeMap["nextUnixTime"] = os.time(timeTableToBeUsed)
 
-            --week
-            elseif repeatInterval=="w" then
-                taskTimeTable.day=taskTimeTable.day+7*num
-                taskTimeMap["nextUnixTime"] = os.time(taskTimeTable) - sinceTaskTimeDayStart
+        --month
+        elseif repeatInterval=="m" then
+            timeTableToBeUsed.month = timeTableToBeUsed.month + num
+            taskTimeMap["nextUnixTime"] = os.time(timeTableToBeUsed)
 
-            --month
-            elseif repeatInterval=="m" then
-                taskTimeTable.month = taskTimeTable.month + num
-                taskTimeMap["nextUnixTime"] = os.time(taskTimeTable) - sinceTaskTimeDayStart
+        --year
+        elseif repeatInterval=="y" then
+            timeTableToBeUsed.year = timeTableToBeUsed.year + num
+            taskTimeMap["nextUnixTime"] = os.time(timeTableToBeUsed)
+        end
 
-            --year
-            elseif repeatInterval=="y" then
-                taskTimeTable.year = taskTimeTable.year + num
-                taskTimeMap["nextUnixTime"] = os.time(taskTimeTable) - sinceTaskTimeDayStart
-            end
+        -----------------
 
-            --increase the nextUnixTime until it shows a future time
-            if taskTimeMap["nextUnixTime"] < os.time(currentTimeTable) then
+        --if the repeat type is "++" and the next unix time is in the past, increase it until it shıws a future time.
+        if repeatType=="++" and taskTimeMap["nextUnixTime"] < os.time(currentTimeTable) then
                 while true do
                     local nextUnixTime = taskTimeMap["nextUnixTime"] + M.oneDay
                     taskTimeMap["nextUnixTime"] = nextUnixTime
@@ -179,53 +168,9 @@ M.parseTaskTime = function(timeString)
                         end
                     end
                 end
-            end
-
-        --".+"
-        elseif repeatType==".+" then
-            --day
-            if repeatInterval=="d" then
-                currentTimeTable.day=currentTimeTable.day+num
-                taskTimeMap["nextUnixTime"] = os.time(currentTimeTable)
-                --as you may know from the elementary school, if we just subtract num, we arrive today.
-                --We subtract num*2 to go to the previous time
-                currentTimeTable.day=currentTimeTable.day-num*2
-                taskTimeMap["pastUnixTime"] = os.time(currentTimeTable)
-
-                taskTimeMap["intervalInDays"]=num
-
-                --this derived from the task date instead of current date
-                --TODO: deprecated, use in ++ or +
-                taskTimeTable.day=taskTimeTable.day+num
-                taskTimeMap["nextTaskUnixTime"] = os.time(taskTimeTable)
-
-            --week
-            elseif repeatInterval=="w" then
-                currentTimeTable.day=currentTimeTable.day+7*num
-                taskTimeMap["nextUnixTime"] = os.time(currentTimeTable)
-                --newTimeTable.day=newTimeTable.day-7*num*2
-                --taskTimeMap["pastUnixTime"] = os.time(newTimeTable)
-
-                taskTimeMap["intervalInDays"]=7*num
-
-                --this derived from the task date instead of current date
-                --TODO: deprecated, use in ++ or +
-                taskTimeTable.day=taskTimeTable.day+7*num
-                taskTimeMap["nextTaskUnixTime"] = os.time(taskTimeTable)
-
-            elseif repeatInterval=="m" then
-                currentTimeTable.month = currentTimeTable.month + num
-                taskTimeMap["nextUnixTime"] = os.time(currentTimeTable)
-
-            elseif repeatInterval=="y" then
-                currentTimeTable.year = currentTimeTable.year + num
-                taskTimeMap["nextUnixTime"] = os.time(currentTimeTable)
-            end
         end
 
         taskTimeMap["nextTimeStr"] = os.date("%Y-%m-%d %H:%M", taskTimeMap["nextUnixTime"]) .." +"..repeatNum..repeatInterval
-        taskTimeMap["nextTaskTimeStr"] = os.date("%Y-%m-%d %H:%M", taskTimeMap["nextTaskUnixTime"]) .." +"..repeatNum..repeatInterval
-        --taskTimeMap["pastTimeStr"] = os.date("%Y-%m-%d %H:%M", taskTimeMap["pastUnixTime"]) .." +"..repeatNum..repeatInterval
     end
 
     return taskTimeMap

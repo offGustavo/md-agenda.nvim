@@ -121,7 +121,9 @@ To make a task repeating, you should add the repeat indicator at the end of the 
 - **"w"**: n week after, same weekday.
 - **"m"**: n month after, same day of the month.
 - **"y"**: n year after, same month and day of the month.
-<!--- "u": 10305u: First number represents the day of the week. In this case, Monday. The second number represents end(1) or start(0). The third number represents the occurance number and the last two numbers represents the month. The example means: the third Monday in May from the end. u stands for unnecessarily complex.-->
+<!--- "x": Looks for the weekday's occurrence number from the start in the month. Example: Second Monday in January-->
+<!--- "z": Looks for the weekday's occurrence number from the end in the month. Example: Last Friday in May-->
+<!--- "u": 01305u: The first number represents end(1) or start(0). The second number represents the day of the week. In this case, Monday. The third number represents the occurrence number and the last two numbers represents the month. The example means: the third Monday in May from the end. u stands for unnecessarily complex.-->
 
 **Progress Indicator**:\
 If you want to save the progress to the logbook, place progress indicator to the task.
