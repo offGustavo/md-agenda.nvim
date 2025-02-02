@@ -49,7 +49,6 @@ If you had found a bug or you have a good idea, please open an issue.
 
 ## Roadmap
 - Using a custom function for folding instead of markers. (medium priority)
-- Showing tasks' completion times in the agenda view. (high priority)
 
 ---
 
