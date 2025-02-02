@@ -209,7 +209,7 @@ local function getAgendaTasks(startTimeUnix, endTimeUnix)
                     end
 
                     --if task is a repeating task (repeat indicator on the scheduled), show the incoming days at the agenda until the deadline
-                    if parsedScheduled and parsedScheduled["nextUnixTime"] then
+                    if (taskType == "TODO" or taskType == "INFO") and parsedScheduled and parsedScheduled["nextUnixTime"] then
                         for _, sortedDate in ipairs(sortedDates) do
                             local sdYear, sdMonth, sdDay = sortedDate:match("([0-9]+)-([0-9]+)-([0-9]+)")
                             local sdUnixTime = os.time({year=sdYear, month=sdMonth, day=sdDay})
@@ -238,7 +238,7 @@ local function getAgendaTasks(startTimeUnix, endTimeUnix)
                     end
 
                     --if task is a repeating task (repeat indicator on the deadline), show the incoming days at the agenda.
-                    if parsedDeadline and parsedDeadline["nextUnixTime"] then
+                    if (taskType == "TODO" or taskType == "INFO") and parsedDeadline and parsedDeadline["nextUnixTime"] then
                         for _, sortedDate in ipairs(sortedDates) do
                             local sdYear, sdMonth, sdDay = sortedDate:match("([0-9]+)-([0-9]+)-([0-9]+)")
                             local sdUnixTime = os.time({year=sdYear, month=sdMonth, day=sdDay})
