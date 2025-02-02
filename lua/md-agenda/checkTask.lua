@@ -125,7 +125,7 @@ local function checkTask()
 
                 --The start line is 0-indexed unlike lua. thus, end line (excluded) is lineNum and changed line is lineNum-1.
                 vim.api.nvim_buf_set_lines(0, lineNum-1, lineNum, false, { newTaskStr })
-                common.addPropertyToBufTask(lineNum, "Last Completion", os.date("%Y-%m-%d %H:%M", currentTime))
+                common.addPropertyToBufTask(lineNum, "Last Repeat", os.date("%Y-%m-%d %H:%M", currentTime))
             end
 
         ---------------------DONE/DUE CASE---------------------

@@ -87,7 +87,7 @@ local function getAgendaTasks(startTimeUnix, endTimeUnix)
         i=i+1
     end
 
-    --[[--focus on the hour and minutes in day agenda
+    --[[--TODO: focus on the hour and minutes in day agenda
     local dayAgenda=false
     if startTimeUnix == endTimeUnix then
         dayAgenda=true
@@ -96,7 +96,7 @@ local function getAgendaTasks(startTimeUnix, endTimeUnix)
     for _,agendaFilePath in ipairs(common.listAgendaFiles()) do
         local file_content = vim.fn.readfile(agendaFilePath)
         if file_content then
-            --also get file header
+            --TODO: consider also getting the file header to show the task's origin file. 
             local lineNumber = 0
             for _,line in ipairs(file_content) do
                 lineNumber = lineNumber+1
@@ -255,6 +255,16 @@ local function getAgendaTasks(startTimeUnix, endTimeUnix)
                         end
                     end
 
+                    --If a task is done, show the time in Completion property in the agenda view.
+                    if taskProperties["Completion"] and taskProperties["Completion"][2] then
+                        for _,sortedDate in ipairs(sortedDates) do
+                            if taskProperties["Completion"][2]:match("([0-9]+%-[0-9]+%-[0-9]+)") == sortedDate then
+                                    table.insert(days[sortedDate]["tasks"],
+                                        "Completion: "..showTimeStrInAgendaItem(taskProperties["Completion"][2])..taskType.." "..title)
+                            end
+                        end
+                    end
+
                 end
             end
         end
@@ -286,6 +296,7 @@ local function renderAgendaView()
 
     vim.cmd("highlight info guifg=lightgreen ctermfg=lightgreen")
     vim.cmd("syntax match info /INFO/")
+    vim.cmd("syntax match info /Completion:/")
 
     vim.cmd("highlight deadline guifg=red ctermfg=red")
     vim.cmd("syntax match deadline /Deadline:/")
