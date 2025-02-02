@@ -297,7 +297,7 @@ local function renderAgendaView()
     local bufNumber = vim.api.nvim_get_current_buf()
 
     vim.cmd("highlight date guifg=yellow ctermfg=yellow")
-    vim.cmd("syntax match date /^-\\+ .*$/")
+    vim.cmd("syntax match date /^- .*$/")
 
     vim.cmd("highlight todo guifg=cyan ctermfg=cyan")
     vim.cmd("syntax match todo /TODO/")
@@ -367,7 +367,7 @@ local function renderAgendaView()
         end
 
         for _,taskStr in ipairs(dayNTasks[2][dateStr]["tasks"]) do
-            table.insert(renderLines, "    "..taskStr)
+            table.insert(renderLines, "  "..taskStr)
         end
 
     end
