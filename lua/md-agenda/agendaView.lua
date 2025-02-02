@@ -190,9 +190,9 @@ local function getAgendaTasks(startTimeUnix, endTimeUnix)
                             )
                         end
                         --insert text to current date if its between scheduled and deadline date
-                        --TODO: what happens if the current day is the same day with deadline or scheduled time? fix it.
                         if days[currentDateStr] and
-                        (currentDayStart < parsedDeadline["unixTime"]) and (parsedScheduled["unixTime"] < currentDayStart) then
+                        (currentDayStart < parsedDeadline["unixTime"]) and (parsedScheduled["unixTime"] < currentDayStart) and
+                        currentDateStr ~= deadlineTimeStr:match("([0-9]+%-[0-9]+%-[0-9]+)") and currentDateStr ~= scheduledTimeStr:match("([0-9]+%-[0-9]+%-[0-9]+)") then
                             table.insert(days[currentDateStr]["tasks"],
                                 taskType.." "..title.." (DL: "..remainingOrPassedDays(currentDateStr, deadlineTimeStr)..")"
                             )
