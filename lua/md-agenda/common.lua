@@ -72,8 +72,6 @@ M.parseTaskTime = function(timeString)
     }
     local taskUnixTime = os.time(taskTimeTable)
     taskTimeMap["unixTime"]=taskUnixTime
-    --Seconds since task date's day start. Subtract to get task date's day start (00:00)
-    local sinceTaskTimeDayStart = 60*taskTimeTable.min*taskTimeTable.hour
 
     local currentUnixTime = os.time()
     local currentTimeTable = os.date("*t", currentUnixTime)
@@ -162,7 +160,8 @@ M.parseTaskTime = function(timeString)
                             end
 
                         elseif repeatInterval=="y" then
-                            if taskTimeTable.year == os.date("*t",nextUnixTime).year then
+                            if os.date("*t",os.time(taskTimeTable)).month == os.date("*t",nextUnixTime).month and
+                            os.date("*t",os.time(taskTimeTable)).day == os.date("*t",nextUnixTime).day then
                                 break
                             end
                         end

@@ -113,7 +113,7 @@ To make a task repeating, you should add the repeat indicator at the end of the 
 
 **Repeat Indicator Types**:
 - **"+"**: Shifts the date to, for example, one month (+1m) after the scheduled time or deadline. It can be still in the past and overdue even after marking it.
-- **"++"**: Shifts the date by, for example, at least one week (++1w) from scheduled time or deadline, but also by as many weeks as it takes to get this date into the future.
+- **"++"**: Shifts the date by, for example, at least one week (++1w) from scheduled time or deadline, but also by as many days as it takes to get the same weekday into the future.
 - **".+"**: Shifts the date to, for example, one month (.+1m) after today.
 
 **Repeat Indicator Intervals**:
@@ -123,7 +123,6 @@ To make a task repeating, you should add the repeat indicator at the end of the 
 - **"y"**: n year after, same month and day of the month.
 <!--- "x": Looks for the weekday's occurrence number from the start in the month. Example: Second Monday in January-->
 <!--- "z": Looks for the weekday's occurrence number from the end in the month. Example: Last Friday in May-->
-<!--- "u": 01305u: The first number represents end(1) or start(0). The second number represents the day of the week. In this case, Monday. The third number represents the occurrence number and the last two numbers represents the month. The example means: the third Monday in May from the end. u stands for unnecessarily complex.-->
 
 **Progress Indicator**:\
 If you want to save the progress to the logbook, place progress indicator to the task.
