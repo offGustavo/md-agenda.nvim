@@ -265,6 +265,23 @@ local function getAgendaTasks(startTimeUnix, endTimeUnix)
                         end
                     end
 
+                    --Show logbook entries in the graph
+                    if (parsedDeadline and parsedDeadline["nextUnixTime"]) or
+                    (parsedScheduled and parsedScheduled["nextUnixTime"]) then
+                        local logbookItems = common.getLogbookEntries(file_content, lineNumber)
+
+                        if logbookItems then
+                            for logbookDate,logbookItem in pairs(logbookItems) do
+                                for _,sortedDate in ipairs(sortedDates) do
+                                    if logbookDate == sortedDate then
+                                        table.insert(days[sortedDate]["tasks"],
+                                            "Repeat: "..showTimeStrInAgendaItem(logbookItem[2])..taskType.." "..title)
+                                    end
+                                end
+                            end
+                        end
+                    end
+
                 end
             end
         end
@@ -297,6 +314,7 @@ local function renderAgendaView()
     vim.cmd("highlight info guifg=lightgreen ctermfg=lightgreen")
     vim.cmd("syntax match info /INFO/")
     vim.cmd("syntax match info /Completion:/")
+    vim.cmd("syntax match info /Repeat:/")
 
     vim.cmd("highlight deadline guifg=red ctermfg=red")
     vim.cmd("syntax match deadline /Deadline:/")

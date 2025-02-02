@@ -185,7 +185,7 @@ M.parseTaskTime = function(timeString)
             timeTableToBeUsed.year = timeTableToBeUsed.year + num
             taskTimeMap["nextUnixTime"] = os.time(timeTableToBeUsed)
 
-        --Currently, number is ignored.
+        --x or z
         elseif repeatInterval=="x" or repeatInterval=="z" then
             local taskDateWithDetails = os.date("*t", taskUnixTime)
             local taskWeekday = taskDateWithDetails.wday
@@ -221,7 +221,8 @@ M.parseTaskTime = function(timeString)
 
         -----------------
 
-        --if the repeat type is "++" and the next unix time is in the past, increase it until it shıws a future time.
+        --if the repeat type is "++" and the next unix time is in the past, increase it until it shows a future time.
+        --TODO FIX: If today's time is higher than 00:00, instead of scheduleding today, it schedules to tommorow.
         if repeatType=="++" and taskTimeMap["nextUnixTime"] < currentUnixTime then
                 local taskDateWithDetails = os.date("*t", taskUnixTime)
                 while true do

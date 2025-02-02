@@ -36,7 +36,7 @@ local function getHabitTasks(startTimeUnix, endTimeUnix)
     for _,agendaFilePath in ipairs(common.listAgendaFiles()) do
         local file_content = vim.fn.readfile(agendaFilePath)
         if file_content then
-            --also get file header
+            --TODO: also get file header to show the origin of the task
             local lineNumber = 0
             for _,line in ipairs(file_content) do
                 lineNumber = lineNumber+1
@@ -190,7 +190,7 @@ local function renderHabitView()
 
     --habits
     for _,habit in ipairs(dayNHabits[2]) do
-        table.insert(renderLines, habit.habit..":")
+        table.insert(renderLines, habit.habit.." :")
 
         local consistencyGraph = ""
         for _,dateStr in ipairs(dayNHabits[1]) do
