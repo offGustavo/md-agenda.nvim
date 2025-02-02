@@ -30,64 +30,19 @@ local function isDirectory(path)
     return stat and stat.type == 'directory'
 end
 
---(DEPRECATED FUNCTION)
-local cachePath = vim.fn.stdpath("data").."/md-agenda"
-M.saveRemoteAgendaFiles = function()
-    for _,agendaFilePath in ipairs(M.config.agendaFiles) do
-        local fileName = agendaFilePath:match("^[a-z]+://.+/(.+%.md)$")
-        if fileName then
-            local command = string.format("curl -s --fail %s", agendaFilePath)
-            local body = vim.fn.system(command)
-            local code = vim.v.shell_error
-
-            if not body or code ~= 0 then
-                print("Failed to get remote "..fileName)
-                goto continue
-            end
-
-            --save file to the cache folder
-            if not isDirectory(cachePath) then
-                -- Directory does not exist, create it
-                local success, err = vim.loop.fs_mkdir(cachePath, 511) -- 511 is the permission (755 in octal)
-                if not success then
-                    print("Error creating directory: " .. err)
-                    goto continue
-                end
-            end
-
-            local f = assert(io.open(cachePath.."/"..fileName, 'wb'))
-            f:write(body)
-            f:close()
-        end
-        ::continue::
-    end
-end
-
 M.listAgendaFiles = function()
     local agendaFiles = {}
     for _,agendaFilePath in ipairs(M.config.agendaFiles) do
 
-        --if its an url that contains markdown file (DEPRECATED FUNCTIONALITY)
-        local fileName = agendaFilePath:match("^[a-z]+://.+/(.+%.md)$")
-        if fileName then
-            local filePath = cachePath.."/"..fileName
-            local fileStats = vim.loop.fs_stat(filePath)
-            if fileStats and fileStats.type == "file" then
-                table.insert(agendaFiles, filePath)
-            end
+        agendaFilePath = vim.fn.expand(agendaFilePath)
 
-        --if its a local file
+        if isDirectory(agendaFilePath) then
+            local fileList = vim.fn.systemlist("rg --files --glob '!.*' --glob '*.md' --glob '*.mdx' " .. agendaFilePath)
+            for _,oneFile in ipairs(fileList) do
+                table.insert(agendaFiles, oneFile)
+            end
         else
-            agendaFilePath = vim.fn.expand(agendaFilePath)
-
-            if isDirectory(agendaFilePath) then
-                local fileList = vim.fn.systemlist("rg --files --glob '!.*' --glob '*.md' " .. agendaFilePath)
-                for _,oneFile in ipairs(fileList) do
-                    table.insert(agendaFiles, oneFile)
-                end
-            else
-                table.insert(agendaFiles, agendaFilePath)
-            end
+            table.insert(agendaFiles, agendaFilePath)
         end
     end
 
