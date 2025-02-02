@@ -396,11 +396,16 @@ M.getTaskProperties = function(ContentLinesArr, taskLineNum)
 
         local key,value = line:match(propertyPattern)
         if key and value then
-            properities[key]={propertyLineNum, value}
+            --if value points to a lua script
+            local luaScriptPath = value:match("%$%((.*)%)")
+            if luaScriptPath then
+                --make the value the returned lua script value
+                properities[key]={propertyLineNum, loadfile(luaScriptPath)()}
+            else
+                properities[key]={propertyLineNum, value}
+            end
 
             propertyLineNum=propertyLineNum+1
-
-            --print("Property: "..key.." "..value)
         else
           break
         end

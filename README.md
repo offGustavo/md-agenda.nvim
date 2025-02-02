@@ -124,6 +124,14 @@ To make a task repeating, you should add the repeat indicator at the end of the 
 + **"x"**: Looks for the weekday's occurrence number from the start in the month. Example: Second Monday in January. Then gets the same date n occurrence after.
 + **"z"**: Looks for the weekday's occurrence number from the end in the month. Example: Last Friday in May. Then gets the same date n occurrence after.
 
+Still not satisfied? You can also run lua scripts inside task properties by placing the script's absolute path inside $(). Here is an example:
+```md
+<!--test.lua returns a date string in the format used by this plugin.-->
+<!--By doing this, you can show this task in the graph view, in the returned date.-->
+## TODO: Test Task
+- Scheduled: `$(/path/to/lua/script/test.lua)`
+```
+
 **Progress Indicator**:\
 If you want to save the progress to the logbook, place progress indicator to the task.
 
