@@ -50,7 +50,6 @@ If you had found a bug or you have a good idea, please open an issue.
 ## Roadmap
 - Using a custom function for folding instead of markers. (medium priority)
 - Showing tasks' completion times in the agenda view. (high priority)
-- An interval type to support weird US national dates. (Third Monday in January etc.) (medium priority)
 
 ---
 
@@ -121,8 +120,9 @@ To make a task repeating, you should add the repeat indicator at the end of the 
 - **"w"**: n week after, same weekday.
 - **"m"**: n month after, same day of the month.
 - **"y"**: n year after, same month and day of the month.
-<!--- "x": Looks for the weekday's occurrence number from the start in the month. Example: Second Monday in January-->
-<!--- "z": Looks for the weekday's occurrence number from the end in the month. Example: Last Friday in May-->
+
++ **"x"**: Looks for the weekday's occurrence number from the start in the month. Example: Second Monday in January. Then gets the same date n occurrence after.
++ **"z"**: Looks for the weekday's occurrence number from the end in the month. Example: Last Friday in May. Then gets the same date n occurrence after.
 
 **Progress Indicator**:\
 If you want to save the progress to the logbook, place progress indicator to the task.

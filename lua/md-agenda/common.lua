@@ -49,6 +49,54 @@ M.listAgendaFiles = function()
     return agendaFiles
 end
 
+--Gets the given unixTime's weekday and month, then based on the start point, counts the occurrence of this weekday from the start or the end until the given unixTime (Example: given date is in Monday and its the third monday in January from the start).
+local function getWeekdayOccurenceCountInMonthUntilGivenDate(startPoint, unixTime)
+--\{{{
+    local timeTable = os.date("*t", unixTime)
+    local occurrenceCount = 0
+
+    --Start from the start
+    if startPoint == 1 then
+        local firstDayOfMonth = os.time({year = timeTable.year, month = timeTable.month, day=1})
+
+        --Find the first same weekday of the same month
+        local occurrence = firstDayOfMonth
+        while os.date("*t", occurrence).wday ~= timeTable.wday  do
+
+            occurrence = occurrence + M.oneDay
+        end
+
+        --After the first same weekday found, increase it by one week until it has the same day with given unixTime
+        while occurrence <= unixTime do
+            occurrenceCount = occurrenceCount + 1
+
+            occurrence = occurrence + M.oneDay * 7
+        end
+
+    --Start from the end
+    elseif startPoint == -1 then
+        --To get the last day of this month, get the next month's first day, then subtract one day, finally, convert the new result to the table.
+        local lastDayOfMonth = os.time(os.date("*t", os.time({year = timeTable.year, month = timeTable.month+1, day=1}) - M.oneDay))
+
+        --Find the last same weekday of the same month
+        local occurrence = lastDayOfMonth
+        while os.date("*t", occurrence).wday ~= timeTable.wday do
+
+            occurrence = occurrence - M.oneDay
+        end
+
+        --After the last same weekday found, decrease it by one week until it has the same day with given unixTime
+        while unixTime <= occurrence do
+            occurrenceCount = occurrenceCount + 1
+
+            occurrence = occurrence - M.oneDay * 7
+        end
+    end
+
+    return occurrenceCount
+--\}}}
+end
+
 M.parseTaskTime = function(timeString)
 --\{{{
     --time string's format: 2025-12-30 18:05 +1d (the last one is the repeat interval and is optional)
@@ -91,8 +139,9 @@ M.parseTaskTime = function(timeString)
 
         taskTimeMap["repeatType"] = repeatType
 
-        if repeatInterval ~= "d" and repeatInterval ~= "w" and repeatInterval ~= "m" and repeatInterval ~= "y" then
-            print("invalid repeat interval. You can only use d(day), w(week), m(month) and y(year)")
+        if repeatInterval ~= "d" and repeatInterval ~= "w" and repeatInterval ~= "m" and repeatInterval ~= "y" and
+        repeatInterval ~= "x" and repeatInterval ~= "z" then
+            print("invalid repeat interval. You can only use d(day), w(week), m(month), y(year), x and z")
             return
         end
 
@@ -107,7 +156,7 @@ M.parseTaskTime = function(timeString)
         if repeatType == "+" or repeatType == "++" then
             --Consider task's date day start
             timeTableToBeUsed = taskTimeTable
-            timeTableToBeUsed.hour, timeTableToBeUsed.min = 0,0
+            --timeTableToBeUsed.hour, timeTableToBeUsed.min = 0,0
 
         elseif repeatType == ".+" then
             --Consider today's date
@@ -135,34 +184,81 @@ M.parseTaskTime = function(timeString)
         elseif repeatInterval=="y" then
             timeTableToBeUsed.year = timeTableToBeUsed.year + num
             taskTimeMap["nextUnixTime"] = os.time(timeTableToBeUsed)
+
+        --Currently, number is ignored.
+        elseif repeatInterval=="x" or repeatInterval=="z" then
+            local taskDateWithDetails = os.date("*t", taskUnixTime)
+            local taskWeekday = taskDateWithDetails.wday
+            local taskMonth = taskDateWithDetails.month
+            local taskYear = taskDateWithDetails.year
+
+            if repeatInterval=="x" then
+                --Weekday's occurrence count in the month from the month's start to the taskUnixTime
+                local occurrenceCount = getWeekdayOccurenceCountInMonthUntilGivenDate(1,taskUnixTime)
+
+                taskTimeMap["nextUnixTime"] = os.time({year=taskYear+num, month=taskMonth, day=1})
+                --Do a loop until the nexUnixTime's weekday and its occurrenceCount is equal to task's
+                while os.date("*t", taskTimeMap["nextUnixTime"]).wday ~= taskWeekday and
+                occurrenceCount ~= getWeekdayOccurenceCountInMonthUntilGivenDate(1, taskTimeMap["nextUnixTime"]) do
+
+                    taskTimeMap["nextUnixTime"] = taskTimeMap["nextUnixTime"] + M.oneDay
+                end
+
+            elseif repeatInterval=="z" then
+                --Weekday's occurrence count in the month from the month's end to the taskUnixTime
+                local occurrenceCount = getWeekdayOccurenceCountInMonthUntilGivenDate(-1,taskUnixTime)
+
+                taskTimeMap["nextUnixTime"] = os.time({year=taskYear+num, month=taskMonth, day=1})
+                --Do a loop until the nexUnixTime's weekday and its occurrenceCount is equal to task's
+                while os.date("*t", taskTimeMap["nextUnixTime"]).wday ~= taskWeekday and
+                occurrenceCount ~= getWeekdayOccurenceCountInMonthUntilGivenDate(-1, taskTimeMap["nextUnixTime"]) do
+
+                    taskTimeMap["nextUnixTime"] = taskTimeMap["nextUnixTime"] + M.oneDay
+                end
+            end
+
         end
 
         -----------------
 
         --if the repeat type is "++" and the next unix time is in the past, increase it until it shıws a future time.
-        if repeatType=="++" and taskTimeMap["nextUnixTime"] < os.time(currentTimeTable) then
+        if repeatType=="++" and taskTimeMap["nextUnixTime"] < currentUnixTime then
+                local taskDateWithDetails = os.date("*t", taskUnixTime)
                 while true do
                     local nextUnixTime = taskTimeMap["nextUnixTime"] + M.oneDay
                     taskTimeMap["nextUnixTime"] = nextUnixTime
 
-                    if os.time(currentTimeTable) < taskTimeMap["nextUnixTime"] then
+                    if currentUnixTime < taskTimeMap["nextUnixTime"] then
                         if repeatInterval=="d" then
                             break
 
                         elseif repeatInterval=="w" then
-                            if os.date("*t",os.time(taskTimeTable)).wday == os.date("*t",nextUnixTime).wday then
+                            if taskDateWithDetails.wday == os.date("*t",nextUnixTime).wday then
                                 break
                             end
 
                         elseif repeatInterval=="m" then
-                            if taskTimeTable.day == os.date("*t",nextUnixTime).day then
+                            if taskDateWithDetails.day == os.date("*t",nextUnixTime).day then
                                 break
                             end
 
                         elseif repeatInterval=="y" then
-                            if os.date("*t",os.time(taskTimeTable)).month == os.date("*t",nextUnixTime).month and
-                            os.date("*t",os.time(taskTimeTable)).day == os.date("*t",nextUnixTime).day then
+                            if taskDateWithDetails.month == os.date("*t",nextUnixTime).month and
+                            taskDateWithDetails.day == os.date("*t",nextUnixTime).day then
                                 break
+                            end
+
+                        elseif repeatInterval=="x" or repeatInterval=="z" then
+                            if taskDateWithDetails.year < os.date("*t",nextUnixTime).year and
+                            taskDateWithDetails.wday == os.date("*t",nextUnixTime).wday and
+                            taskDateWithDetails.month == os.date("*t",nextUnixTime).month then
+                                if repeatInterval=="x" and
+                                getWeekdayOccurenceCountInMonthUntilGivenDate(1,nextUnixTime) == getWeekdayOccurenceCountInMonthUntilGivenDate(1,taskUnixTime) then
+                                    break
+                                elseif repeatInterval=="z" and
+                                getWeekdayOccurenceCountInMonthUntilGivenDate(-1,nextUnixTime) == getWeekdayOccurenceCountInMonthUntilGivenDate(-1,taskUnixTime) then
+                                    break
+                                end
                             end
                         end
                     end
@@ -210,8 +306,9 @@ M.IsDateInRangeOfGivenRepeatingTimeStr = function(repeatingTimeStr, wantedDateSt
             print("invalid repeat type. You can only use '+', '++' and '.+'")
             return false
         end
-        if repeatInterval ~= "d" and repeatInterval ~= "w" and repeatInterval ~= "m" and repeatInterval ~= "y" then
-            print("invalid repeat interval. You can only use d(day), w(week), m(month) and y(year)")
+        if repeatInterval ~= "d" and repeatInterval ~= "w" and repeatInterval ~= "m" and repeatInterval ~= "y" and
+        repeatInterval ~= "x" and repeatInterval ~= "z" then
+            print("invalid repeat interval. You can only use d(day), w(week), m(month), y(year), x and z.")
             return false
         end
 
@@ -253,6 +350,25 @@ M.IsDateInRangeOfGivenRepeatingTimeStr = function(repeatingTimeStr, wantedDateSt
                 return true
 
             else return false end
+
+        --------
+        elseif repeatInterval == "x" then
+            if os.date("*t", wantedDateUnix).wday == os.date("*t", repeatingTimeUnix).wday and
+            wantedDateTable.month == repeatingTimeTable.month then
+                if getWeekdayOccurenceCountInMonthUntilGivenDate(1, wantedDateUnix) == getWeekdayOccurenceCountInMonthUntilGivenDate(1, repeatingTimeUnix) then
+                    return true
+                end
+            end
+            return false
+
+        elseif repeatInterval == "z" then
+            if os.date("*t", wantedDateUnix).wday == os.date("*t", repeatingTimeUnix).wday and
+            wantedDateTable.month == repeatingTimeTable.month then
+                if getWeekdayOccurenceCountInMonthUntilGivenDate(-1, wantedDateUnix) == getWeekdayOccurenceCountInMonthUntilGivenDate(-1, repeatingTimeUnix) then
+                    return true
+                end
+            end
+            return false
         end
 
     else
