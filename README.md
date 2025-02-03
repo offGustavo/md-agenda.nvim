@@ -1,8 +1,6 @@
 # md-agenda.nvim
 Org-Agenda like, Markdown time and task management plugin for NeoVim.
 
-If you had found a bug or you have a good idea, please open an issue.
-
 ## Installation
 ### Requirements
 - [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim)
@@ -47,7 +45,7 @@ If you had found a bug or you have a good idea, please open an issue.
 ```
 
 ## Roadmap
-- Using a custom function for folding instead of markers. (medium priority)
+- Using a custom function for folding instead of markers. (help needed)
 
 ---
 
@@ -149,7 +147,7 @@ If the task is a repeating task, the completed task is directly saved to the log
 ## Agenda View
 Use `:AgendaView` command to open agenda view. To switch between pages, use `:PrevAgendaPage` and `:NextAgendaPage`. (Pages are relative to today)
 
-Or if you want to show tasks with specific tags only, use `:AgendaViewWTF tag1 tag2`
+Or if you want to show tasks with specific tags and task types only, use `:AgendaViewWTF TODO tag2`,
 
 **Behavior**:
 + If the task has a scheduled time but no deadline time, it is shown on the scheduled day. Also, it is shown today until finished.
@@ -179,4 +177,4 @@ You may consider creating your own and, if it contains non-fixed dates, updating
 
 ## Date Selection
 To insert a deadline or scheduled time, place cursor to the task and use one of the `:TaskDeadline` or `:TaskScheduled` commands.\
-Telescope will list date items starting from today to next 364 days.
+Telescope will list date items starting from today to next 365 days.

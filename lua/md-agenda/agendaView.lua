@@ -4,17 +4,22 @@ local vim = vim
 
 local filterByTags = {} --{"event", "work"}
 --function for filtering tasks based on tags
-local function includeTask(taskTitle)
+local function includeTask(taskLine)
     --if tag filter is empty,
     if #filterByTags == 0 then
         return true
 
     --if tag filter has tags for filter
     else
+        local matchCount = 0
         for _, filterTag in ipairs(filterByTags) do
-            if taskTitle:match("#"..filterTag) or taskTitle:match(":"..filterTag..":") then
-                return true
+            if taskLine:match("#"..filterTag) or taskLine:match(":"..filterTag..":") or taskLine:match("# "..filterTag..":") then
+                matchCount = matchCount + 1
             end
+        end
+
+        if #filterByTags == matchCount then
+            return true
         end
     end
 
@@ -89,7 +94,7 @@ local function getAgendaTasks(startTimeUnix, endTimeUnix)
                 lineNumber = lineNumber+1
 
                 local taskType,title = line:match("^#+ (.+): (.*)")
-                if (taskType=="TODO" or taskType=="DONE" or taskType=="DUE" or taskType=="INFO") and title and includeTask(title) then
+                if (taskType=="TODO" or taskType=="DONE" or taskType=="DUE" or taskType=="INFO") and title and includeTask(line) then
                     local taskProperties = common.getTaskProperties(file_content, lineNumber)
 
                     --------------------------
