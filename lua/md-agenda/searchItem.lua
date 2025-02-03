@@ -13,7 +13,7 @@ local function itemSearch()
                 lineNumber = lineNumber+1
 
                 local taskType,title = line:match("^#+ (.+): (.*)")
-                if (taskType=="TODO" or taskType=="DONE" or taskType=="DUE" or taskType=="INFO") and title then
+                if (taskType=="TODO" or taskType=="DONE" or taskType=="DUE" or taskType=="INFO" or taskType == "HABIT") and title then
                     table.insert(agendaItems, {agendaFilePath, lineNumber, line:gsub("^#+ ", "")})
 
                 end
