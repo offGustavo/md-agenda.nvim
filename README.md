@@ -116,7 +116,7 @@ Markdown time and task management plugin for NeoVim, inspired by org-agenda.
 
 | Repeat Indicator Type | Description |
 | :-: | - |
-| **"+"** | Shifts the date to, for example, one month **( +1m )** after the scheduled time or deadline. It can be still in the past and overdue even after marking it. |
+| **"+"** | Shifts the date to, for example, one month **( +1m )** after the scheduled time or deadline. It can be still in the past and overdue even after checking the task. |
 | **"++"** | Shifts the date by, for example, at least one week **( ++1w )** from scheduled time or deadline, but also by as many days as it takes to get the same weekday into the future. |
 | **".+"** | Shifts the date to, for example, one month **( .+1m )** after today. |
 

@@ -339,6 +339,8 @@ local function renderAgendaView()
 
     local dayNTasks = getAgendaTasks(pageStart, pageEnd)
 
+    table.insert(renderLines, "Agenda View - Page: "..relativePage)
+
     for _,dateStr in ipairs(dayNTasks[1]) do
 
         --format date for better readability
@@ -387,12 +389,30 @@ end, {nargs = '*'})
 
 vim.api.nvim_create_user_command('NextAgendaPage', function()
     relativePage=relativePage+1
+
+    local buf = vim.api.nvim_get_current_buf()
+    local firstLineContent = vim.api.nvim_buf_get_lines(buf, 0, 1, false)[1]
+
+    if not firstLineContent:match("Agenda View %- Page: ") then
+        print("You can run :NextAgendaPage only in Agenda View")
+        return
+    end
+
     vim.cmd('q')
     renderAgendaView()
 end, {})
 
 vim.api.nvim_create_user_command('PrevAgendaPage', function()
     relativePage=relativePage-1
+
+    local buf = vim.api.nvim_get_current_buf()
+    local firstLineContent = vim.api.nvim_buf_get_lines(buf, 0, 1, false)[1]
+
+    if not firstLineContent:match("Agenda View %- Page: ") then
+        print("You can run :PrevAgendaPage only in Agenda View")
+        return
+    end
+
     vim.cmd('q')
     renderAgendaView()
 end, {})
