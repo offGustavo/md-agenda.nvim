@@ -21,19 +21,6 @@ local function includeTask(taskTitle)
     return false
 end
 
-vim.api.nvim_create_user_command('TaskResetTagFilter', function()
-    filterByTags = {}
-end, {})
-
---Filter agenda view 
-vim.api.nvim_create_user_command("TaskFilterByTag", function (opts)
-    local args = {}
-    for arg in opts.args:gmatch("[a-zA-Z0-9]+") do
-        table.insert(args, arg)
-    end
-    filterByTags = args
-end, { nargs = '*' })
-
 ------------------
 
 --Function to show times in agenda items only if they are different than 00:00
@@ -382,11 +369,15 @@ end
 
 vim.api.nvim_create_user_command('AgendaView', function()filterByTags={};renderAgendaView()end, {})
 
-vim.api.nvim_create_user_command('AgendaViewWithTags', function()
-    print(":AgendaViewWithTags is deprecated. Use :AgendaViewWTF instead.")
+vim.api.nvim_create_user_command('AgendaViewWTF', function(opts)
+    local args = {}
+    for arg in opts.args:gmatch("[a-zA-Z0-9]+") do
+        table.insert(args, arg)
+    end
+    filterByTags = args
+
     renderAgendaView()
-end, {})
-vim.api.nvim_create_user_command('AgendaViewWTF', function()renderAgendaView()end, {})
+end, {nargs = '*'})
 
 vim.api.nvim_create_user_command('NextAgendaPage', function()
     relativePage=relativePage+1

@@ -40,8 +40,8 @@ If you had found a bug or you have a good idea, please open an issue.
 
         --optional: create your own agenda view command to show tasks with a specific tag only
         vim.api.nvim_create_user_command("WorkAgenda", function()
-            vim.cmd("TaskFilterByTag work companyA") --first, filter with tags
-            vim.cmd("AgendaViewWTF") --then, run the agenda view with tag filters
+            --vim.cmd("TaskFilterByTag work companyA") --first, filter with tags
+            vim.cmd("AgendaViewWTF work companyA") --Run the agenda view with tag filters
         end, {})
     end
 },
@@ -149,7 +149,8 @@ If the task is a repeating task, the completed task is directly saved to the log
 
 ## Agenda View
 Use `:AgendaView` command to open agenda view. To switch between pages, use `:PrevAgendaPage` and `:NextAgendaPage`. (Pages are relative to today)
-- `:AgendaView` command resets all tag filters before opening the view. If you do not want this, use `:AgendaViewWTF`
+
+Or if you want to show tasks with specific tags only, use `:AgendaViewWTF tag1 tag2`
 
 **Behavior**:
 + If the task has a scheduled time but no deadline time, it is shown on the scheduled day. Also, it is shown today until finished.
@@ -157,12 +158,6 @@ Use `:AgendaView` command to open agenda view. To switch between pages, use `:Pr
 + If the task has both a deadline and scheduled time, it is shown in both the deadline and scheduled time. Also, if today is between these times, it is shown today.
 + If the task is a repeating task, it is shown in the scheduled time and the next days based on the repeat indicator until the deadline.
 + If the task has no deadline nor scheduled time, it is shown today.
-
-### Tags
-You can filter tasks based on their tags in the agenda view by using `:TaskFilterByTag` command.
-- Example usage: `:TaskFilterByTag tag1 tag2`
-
-To reset the filter, use `:TaskResetTagFilter` command.
 
 ## Habit View
 To open the habit view, use `:HabitView` command. Only habit tasks shown in the habit view.
