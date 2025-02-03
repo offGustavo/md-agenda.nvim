@@ -381,6 +381,7 @@ end
 -------------GET TASK PROPERTIES-------------
 -- its not just for current buffer but all files. So we use content lines array instead
 M.getTaskProperties = function(ContentLinesArr, taskLineNum)
+    --{key={propertyLineNum, value}, ...}
     local properities = {}
 
     local propertyLineNum = taskLineNum + 1
@@ -494,6 +495,7 @@ end
 
 ---------------GET LOGBOOK ENTRIES---------------
 M.getLogbookEntries = function(ContentLinesArr, taskLineNum)
+    --{{status, time, progress}, ...}
     local entries = {}
 
     local logbookStartPassed = false
@@ -543,6 +545,53 @@ M.getLogbookEntries = function(ContentLinesArr, taskLineNum)
     end
 
     return entries
+end
+
+----------------LIST ALL AGENDA ITEMS----------------
+
+--detailLevel: minimal or anything
+M.ListAgendaItems = function(detailLevel)
+    --[[{
+        {
+            metadata={filePath, lineNumber}
+            agendaItem={type, fullLineText}
+            properties={key=value} --if not minimal
+            logbookItems={{status(x or whitespace), time, progress}, ...} --if not minimal
+        },
+        {...},
+        ...
+    }--]]
+    local agendaItems = {}
+
+    for _,agendaFilePath in ipairs(M.listAgendaFiles()) do
+        local file_content = vim.fn.readfile(agendaFilePath)
+        if file_content then
+            local lineNumber = 0
+            for _,line in ipairs(file_content) do
+                lineNumber = lineNumber+1
+
+                local taskType,title = line:match("^#+ (.+): (.*)")
+                if taskType and title then
+
+                    local agendaItem = {}
+
+                    agendaItem["metadata"]={agendaFilePath, lineNumber}
+
+                    agendaItem["agendaItem"]={taskType, line}
+
+                    if detailLevel ~= "minimal" then
+                        agendaItem["properties"] = M.getTaskProperties(file_content, lineNumber)[2]
+
+                        agendaItem["logbookItems"] = M.getLogbookEntries(file_content, lineNumber)
+                    end
+
+                    table.insert(agendaItems, agendaItem)
+                end
+            end
+        end
+    end
+
+    return agendaItems
 end
 
 return M
