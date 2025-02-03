@@ -20,6 +20,7 @@ M.setup = function(opts)
             require("md-agenda.checkTask")
             require("md-agenda.agendaView")
             require("md-agenda.habitView")
+            require("md-agenda.searchItem")
         end,
     })
 

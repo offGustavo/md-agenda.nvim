@@ -147,7 +147,7 @@ If the task is a repeating task, the completed task is directly saved to the log
 ## Agenda View
 Use `:AgendaView` command to open agenda view. To switch between pages, use `:PrevAgendaPage` and `:NextAgendaPage`. (Pages are relative to today)
 
-Or if you want to show tasks with specific tags and task types only, use `:AgendaViewWTF TODO tag2`,
+Or if you want to show tasks with specific tags and agenda item types only, use `:AgendaViewWTF itemType tag2`,
 
 **Behavior**:
 + If the task has a scheduled time but no deadline time, it is shown on the scheduled day. Also, it is shown today until finished.
@@ -178,3 +178,7 @@ You may consider creating your own and, if it contains non-fixed dates, updating
 ## Date Selection
 To insert a deadline or scheduled time, place cursor to the task and use one of the `:TaskDeadline` or `:TaskScheduled` commands.\
 Telescope will list date items starting from today to next 365 days.
+
+## Agenda Item Search
+To find an agenda item's location, use `:TaskSearch` command.\
+Telescope will list all tasks and selecting one will navigate to that task.
