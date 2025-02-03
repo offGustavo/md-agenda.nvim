@@ -40,7 +40,6 @@ If you had found a bug or you have a good idea, please open an issue.
 
         --optional: create your own agenda view command to show tasks with a specific tag only
         vim.api.nvim_create_user_command("WorkAgenda", function()
-            --vim.cmd("TaskFilterByTag work companyA") --first, filter with tags
             vim.cmd("AgendaViewWTF work companyA") --Run the agenda view with tag filters
         end, {})
     end
