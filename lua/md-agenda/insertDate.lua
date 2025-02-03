@@ -39,12 +39,6 @@ local function generateDateList()
     return dateList
 end
 
-local telescopePickers = require('telescope.pickers')
-local telescopeFinders = require('telescope.finders')
-local telescopeActions = require('telescope.actions')
-local telescopeState = require('telescope.actions.state')
-local telescopeConf = require("telescope.config").values
-
 local datePickerItems = {}
 local function initializeDatePickerItems()
     if #datePickerItems == 0 then
@@ -55,11 +49,17 @@ end
 --insertType: scheduled or deadline
 local function datePicker(insertType)
 
+    local telescopePickers = require('telescope.pickers')
+    local telescopeFinders = require('telescope.finders')
+    local telescopeActions = require('telescope.actions')
+    local telescopeState = require('telescope.actions.state')
+    local telescopeConf = require("telescope.config").values
+
     local lineNum = vim.api.nvim_win_get_cursor(0)[1]
     local lineContent = vim.fn.getline(lineNum)
 
     local taskType = lineContent:match("^#+ ([A-Z]+): .*")
-    if not (taskType=="TODO" or taskType=="HABIT" or taskType=="DONE" or taskType=="DUE" or taskType=="INFO") then
+    if not (taskType=="TODO" or taskType=="HABIT" or taskType=="DONE" or taskType=="DUE" or taskType=="INFO" or taskType=="CANCELLED") then
         print("Cannot open the date picker. The cursor is not on a task headline")
         return
     end

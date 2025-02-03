@@ -94,7 +94,7 @@ local function getAgendaTasks(startTimeUnix, endTimeUnix)
                 lineNumber = lineNumber+1
 
                 local taskType,title = line:match("^#+ (.+): (.*)")
-                if (taskType=="TODO" or taskType=="DONE" or taskType=="DUE" or taskType=="INFO") and title and includeTask(line) then
+                if (taskType~="HABIT") and title and includeTask(line) then
                     local taskProperties = common.getTaskProperties(file_content, lineNumber)
 
                     --------------------------
@@ -311,6 +311,7 @@ local function renderAgendaView()
     vim.cmd("highlight deadline guifg=red ctermfg=red")
     vim.cmd("syntax match deadline /Deadline:/")
     vim.cmd("syntax match deadline /(DL: \\+.*)/")
+    vim.cmd("syntax match deadline /CANCELLED/")
 
     vim.cmd("highlight scheduled guifg=cyan ctermfg=cyan")
     vim.cmd("syntax match scheduled /Scheduled:/")

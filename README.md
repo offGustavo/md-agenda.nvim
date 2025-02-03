@@ -107,6 +107,10 @@ If a task item is completed before the deadline, it is marked as done.
 If a task item is completed after the deadline, it is marked as due.
 - For repeating tasks, if the current scheduled time exceeds the given deadline, the task is marked as due.
 
+**CANCELLED:**\
+To cancel a todo task, use `:CancelTask` command.
+- Only TODO type can be cancelled.
+
 ### Repeating Tasks
 To make a task repeating, you should add the repeat indicator at the end of the "Deadline" or "Scheduled" property.
 - You cannot add the repeat indicator to both of them at the same task.

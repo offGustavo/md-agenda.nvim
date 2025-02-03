@@ -4,7 +4,7 @@ local vim = vim
 
 ----------------CHECK TASK-------------
 --set comletion time property
-local function checkTask()
+local function checkTask(checkAction)
     local currentBuf = vim.api.nvim_get_current_buf()
     local currentBufLines = vim.api.nvim_buf_get_lines(currentBuf, 0, -1, true)
 
@@ -14,11 +14,23 @@ local function checkTask()
     local taskType = lineContent:match("^ *#+ ([A-Z]+): .*$")
     if taskType then
 
-        if taskType~="TODO" and taskType~="HABIT" and taskType~="DONE" and taskType~="DUE" and taskType~="INFO" then
+        if taskType~="TODO" and taskType~="HABIT" and taskType~="DONE" and taskType~="DUE" and taskType~="INFO" and taskType~="CANCELLED" then
             print("Not a task or has not a supported task type")
             return
         end
 
+        ---CANCEL ACTION - START
+        if taskType == "TODO" and checkAction == "cancel" then
+            local newTaskStr = lineContent:gsub("TODO:","CANCELLED:")
+            vim.api.nvim_buf_set_lines(0, lineNum-1, lineNum, false, { newTaskStr })
+            return
+        elseif taskType ~= "TODO" and checkAction == "cancel" then
+            print("Can't cancel tasks other than TODO.")
+            return
+        end
+        ---CANCEL ACTION - END
+
+        ---THE REST IS DEFAULT CHECKING ACTION
         local currentTime = os.time()
 
         local taskProperties = common.getTaskProperties(currentBufLines, lineNum)
@@ -37,7 +49,7 @@ local function checkTask()
             end
         end
 
-        if type=="HABIT" and (not scheduled) then
+        if taskType=="HABIT" and (not scheduled) then
             print("Cannot check the task. Habits must include a Scheduled property")
             return
         end
@@ -128,16 +140,18 @@ local function checkTask()
                 common.addPropertyToBufTask(lineNum, "Last Repeat", os.date("%Y-%m-%d %H:%M", currentTime))
             end
 
-        ---------------------DONE/DUE CASE---------------------
+        ---------------------DONE/DUE/INFO/CANCELLED---------------------
         elseif taskType=="DONE" then
-            print("Cannot check the task. It is already done. Congratulations!")
+            print("Can't check a done task.")
             return
         elseif taskType=="DUE" then
-            print("Cannot check the task. It is already due. Do better next time.")
+            print("Can't check a due task.")
             return
         elseif taskType=="INFO" then
-            print("Info agenda items cannot be checked.")
+            print("Cant check an info item.")
             return
+        elseif taskType=="CANCELLED" then
+            print("Can't check a cancelled task.")
         end
 
         ---
@@ -145,4 +159,8 @@ local function checkTask()
 end
 
 --change this to a command
-vim.api.nvim_create_user_command('CheckTask', checkTask, {})
+vim.api.nvim_create_user_command('CheckTask', function()checkTask("")end, {})
+
+vim.api.nvim_create_user_command("CancelTask", function()
+    checkTask("cancel")
+end, {})
