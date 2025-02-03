@@ -33,98 +33,80 @@ local function getHabitTasks(startTimeUnix, endTimeUnix)
 
     local habits = {}
 
-    for _,agendaFilePath in ipairs(common.listAgendaFiles()) do
-        local file_content = vim.fn.readfile(agendaFilePath)
-        if file_content then
-            --TODO: also get file header to show the origin of the task
-            local lineNumber = 0
-            for _,line in ipairs(file_content) do
-                lineNumber = lineNumber+1
+    local agendaItems = common.getAgendaItems("")
 
-                local taskType,title = line:match("^#+ (.+): (.*)")
-                if (taskType=="HABIT") and title then
+    for _, agendaItem in ipairs(agendaItems) do
+        if agendaItem.agendaItem[1] == "HABIT" then
 
-                    local taskProperties = common.getTaskProperties(file_content, lineNumber)
+            local habitDays = {}
+            --copy days template map's values to this habit's days table
+            for k, v in pairs(days) do
+                habitDays[k] = v  -- Copy each key-value pair
+            end
 
-                    local logbookItems = common.getLogbookEntries(file_content, lineNumber)
+            ------------------
+            local parsedScheduled
+            if agendaItem.properties["Scheduled"] then
+                parsedScheduled = common.parseTaskTime(agendaItem.properties["Scheduled"])
 
-                    local habitDays = {}
-                    --copy days template map's values to this habit's days table
-                    for k, v in pairs(days) do
-                        habitDays[k] = v  -- Copy each key-value pair
+                if not parsedScheduled then print("for some reason, scheduled could not correctly parsed") return end
+            end
+
+            local parsedDeadline
+            if agendaItem.properties["Deadline"] then
+                parsedDeadline = common.parseTaskTime(agendaItem.properties["Deadline"])
+
+                if not parsedDeadline then print("for some reason, deadline could not correctly parsed") return end
+            end
+            ------------------
+
+            --handle with free days between scheduled times based on intervals (repeat indicator)
+            if parsedScheduled then
+                for _, sortedDate in ipairs(sortedDates) do
+                    if not common.IsDateInRangeOfGivenRepeatingTimeStr(agendaItem.properties["Scheduled"], sortedDate) then
+                        habitDays[sortedDate]="⍣"
                     end
-
-                    --------------------------
-
-                    local scheduledTimeStr, parsedScheduled
-                    local scheduled=taskProperties["Scheduled"]
-                    if scheduled then
-                        scheduledTimeStr = scheduled[2]
-                        parsedScheduled = common.parseTaskTime(scheduledTimeStr)
-
-                        if not parsedScheduled then print("for some reason, scheduled could not correctly parsed") return end
-                    end
-
-                    local deadlineTimeStr, parsedDeadline
-                    local deadline=taskProperties["Deadline"]
-                    if deadline then
-                        deadlineTimeStr = deadline[2]
-                        parsedDeadline = common.parseTaskTime(deadlineTimeStr)
-
-                        if not parsedDeadline then print("for some reason, deadline could not correctly parsed") return end
-                    end
-
-                    --------------------------
-
-                    --handle with free days between scheduled times based on intervals (repeat indicator)
-                    if parsedScheduled then
-                        for _, sortedDate in ipairs(sortedDates) do
-                            if not common.IsDateInRangeOfGivenRepeatingTimeStr(scheduledTimeStr, sortedDate) then
-                                habitDays[sortedDate]="⍣"
-                            end
-                        end
-                    end
-
-                    --insert logbook tasks to the days
-                    --as its not an array but map, we use pairs() instead of ipairs()
-                    for habitDay,log in pairs(logbookItems) do
-                        if habitDays[habitDay] then
-                            local habitStatus = log[1]
-
-                            if habitStatus == "x" then
-                                habitDays[habitDay] = "⊹" --it means that the habit is done that day
-                            elseif habitStatus == " " then
-                                habitDays[habitDay] = "¤" --it means that a progress has been made but habit goal could not be made
-                            end
-                        end
-                    end
-
-                    if scheduled then
-                        local scheduledDate=scheduledTimeStr:match("([0-9]+%-[0-9]+%-[0-9]+)")
-                        if habitDays[scheduledDate] then
-
-                            --if the task is scheduled in the past, show past schedulation in different color
-                            --and color today yellow
-                            if parsedScheduled["unixTime"] < currentDayStart then
-                                habitDays[scheduledDate]="⚨"
-                                habitDays[currentDateStr]="♁"--it means that the habit must be done that day
-                            else
-                                habitDays[scheduledDate]="♁" --it means that the habit must be done that day
-                            end
-                        end
-                    end
-
-                    if deadline then
-                        local deadlineDate=deadlineTimeStr:match("([0-9]+%-[0-9]+%-[0-9]+)")
-                        if days[deadlineDate] then
-                            habitDays[deadlineDate]="♆" --it means that its the day of the end of the habit
-                        end
-                    end
-
-                    --habits={ {habit="do bla bla bla", days={2024-04-20="-", 2024-04-21="+", ...}}, ...}
-                    table.insert(habits, {habit=title, days=habitDays})
                 end
             end
+
+            --insert logbook tasks to the days
+            --as its not an array but map, we use pairs() instead of ipairs()
+            for habitDay,log in pairs(agendaItem.logbookItems) do
+                if habitDays[habitDay] then
+                    local habitStatus = log[1]
+
+                    if habitStatus == "x" then
+                        habitDays[habitDay] = "⊹" --it means that the habit is done that day
+                    elseif habitStatus == " " then
+                        habitDays[habitDay] = "¤" --it means that a progress has been made but habit goal could not be made
+                    end
+                end
+            end
+
+            if agendaItem.properties["Scheduled"] then
+                local scheduledDate=agendaItem.properties["Scheduled"]:match("([0-9]+%-[0-9]+%-[0-9]+)")
+                if habitDays[scheduledDate] then
+
+                    --if the task is scheduled in the past, show past schedulation in different color
+                    --and color today yellow
+                    if parsedScheduled["unixTime"] < currentDayStart then
+                        habitDays[scheduledDate]="⚨"
+                        habitDays[currentDateStr]="♁"--it means that the habit must be done that day
+                    else
+                        habitDays[scheduledDate]="♁" --it means that the habit must be done that day
+                    end
+                end
+            end
+
+            if agendaItem.properties["Deadline"] then
+                local deadlineDate=agendaItem.properties["Deadline"]:match("([0-9]+%-[0-9]+%-[0-9]+)")
+                if days[deadlineDate] then
+                    habitDays[deadlineDate]="♆" --it means that its the day of the end of the habit
+                end
+            end
+
+            --habits={ {habit="do bla bla bla", days={2024-04-20="-", 2024-04-21="+", ...}}, ...}
+            table.insert(habits, {habit=agendaItem.agendaItem[2], days=habitDays})
         end
     end
 

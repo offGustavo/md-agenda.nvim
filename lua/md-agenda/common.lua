@@ -380,8 +380,8 @@ end
 
 -------------GET TASK PROPERTIES-------------
 -- its not just for current buffer but all files. So we use content lines array instead
-M.getTaskProperties = function(ContentLinesArr, taskLineNum)
-    --{key={propertyLineNum, value}, ...}
+M.getTaskProperties = function(ContentLinesArr, taskLineNum, withLineNum)
+    --{key={propertyLineNum, value}, ...} or {key=value, ...}
     local properities = {}
 
     local propertyLineNum = taskLineNum + 1
@@ -402,9 +402,15 @@ M.getTaskProperties = function(ContentLinesArr, taskLineNum)
             local luaScriptPath = value:match("%$%((.*)%)")
             if luaScriptPath then
                 --make the value the returned lua script value
-                properities[key]={propertyLineNum, loadfile(luaScriptPath)()}
+                if withLineNum then
+                    properities[key]={propertyLineNum, loadfile(luaScriptPath)()}
+
+                else properities[key]=loadfile(luaScriptPath)() end
             else
-                properities[key]={propertyLineNum, value}
+                if withLineNum then
+                    properities[key]={propertyLineNum, value}
+
+                else properities[key]=value end
             end
 
             propertyLineNum=propertyLineNum+1
@@ -424,7 +430,7 @@ M.addPropertyToBufTask = function(taskLineNum, key, value)
     local currentBuf = vim.api.nvim_get_current_buf()
     local currentBufLines = vim.api.nvim_buf_get_lines(currentBuf, 0, -1, true)
 
-    local taskProperties = M.getTaskProperties(currentBufLines, taskLineNum)
+    local taskProperties = M.getTaskProperties(currentBufLines, taskLineNum, true)
 
     --if it exists, update
     if taskProperties[key] then
@@ -550,11 +556,11 @@ end
 ----------------LIST ALL AGENDA ITEMS----------------
 
 --detailLevel: minimal or anything
-M.ListAgendaItems = function(detailLevel)
+M.getAgendaItems = function(detailLevel)
     --[[{
         {
             metadata={filePath, lineNumber}
-            agendaItem={type, fullLineText}
+            agendaItem={type, text, fullLine}
             properties={key=value} --if not minimal
             logbookItems={{status(x or whitespace), time, progress}, ...} --if not minimal
         },
@@ -575,14 +581,18 @@ M.ListAgendaItems = function(detailLevel)
 
                     local agendaItem = {}
 
-                    agendaItem["metadata"]={agendaFilePath, lineNumber}
+                    agendaItem.metadata ={agendaFilePath, lineNumber}
 
-                    agendaItem["agendaItem"]={taskType, line}
+                    agendaItem.agendaItem ={taskType, title, line}
 
                     if detailLevel ~= "minimal" then
-                        agendaItem["properties"] = M.getTaskProperties(file_content, lineNumber)[2]
+                        agendaItem.properties = M.getTaskProperties(file_content, lineNumber)
 
-                        agendaItem["logbookItems"] = M.getLogbookEntries(file_content, lineNumber)
+                        --Try to get the logbook entries only if the agenda item has a repeat indicator.
+                        if (agendaItem.properties["Scheduled"] and agendaItem.properties["Scheduled"]:match(" [%.%+]+[0-9]+[a-z]")) or
+                        (agendaItem.properties["Deadline"] and agendaItem.properties["Deadline"]:match(" [%.%+]+[0-9]+[a-z]")) then
+                            agendaItem.logbookItems = M.getLogbookEntries(file_content, lineNumber)
+                        end
                     end
 
                     table.insert(agendaItems, agendaItem)

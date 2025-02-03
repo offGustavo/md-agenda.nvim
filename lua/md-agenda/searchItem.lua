@@ -3,23 +3,8 @@
 local common = require("md-agenda.common")
 
 local function itemSearch()
-    local agendaItems = {}
 
-    for _,agendaFilePath in ipairs(common.listAgendaFiles()) do
-        local file_content = vim.fn.readfile(agendaFilePath)
-        if file_content then
-            local lineNumber = 0
-            for _,line in ipairs(file_content) do
-                lineNumber = lineNumber+1
-
-                local taskType,title = line:match("^#+ (.+): (.*)")
-                if (taskType=="TODO" or taskType=="DONE" or taskType=="DUE" or taskType=="INFO" or taskType == "HABIT") and title then
-                    table.insert(agendaItems, {agendaFilePath, lineNumber, line:gsub("^#+ ", "")})
-
-                end
-            end
-        end
-    end
+    local agendaItems = common.getAgendaItems("minimal")
 
     local telescopePickers = require('telescope.pickers')
     local telescopeFinders = require('telescope.finders')
@@ -34,10 +19,10 @@ local function itemSearch()
             results = agendaItems,
             entry_maker = function(entry)
                 return {
-                    value = entry[1],
-                    lnum = entry[2],
-                    display = entry[3],
-                    ordinal = entry[3]
+                    value = entry.metadata[1],
+                    lnum = entry.metadata[2],
+                    display = entry.agendaItem[1].." "..entry.agendaItem[2],
+                    ordinal = entry.agendaItem[1].." "..entry.agendaItem[2]
                 }
             end,
         },

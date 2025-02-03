@@ -85,197 +85,184 @@ local function getAgendaTasks(startTimeUnix, endTimeUnix)
         dayAgenda=true
     end]]
 
-    for _,agendaFilePath in ipairs(common.listAgendaFiles()) do
-        local file_content = vim.fn.readfile(agendaFilePath)
-        if file_content then
-            --TODO: consider also getting the file header to show the task's origin file. 
-            local lineNumber = 0
-            for _,line in ipairs(file_content) do
-                lineNumber = lineNumber+1
+    local agendaItems = M.getAgendaItems("")
 
-                local taskType,title = line:match("^#+ (.+): (.*)")
-                if (taskType~="HABIT") and title and includeTask(line) then
-                    local taskProperties = common.getTaskProperties(file_content, lineNumber)
+    for _, agendaItem in ipairs(agendaItems) do
+        if agendaItem.agendaItem[1]~="HABIT" and includeTask(agendaItem.agendaItem[3]) then
 
-                    --------------------------
+            ------------------
+            local parsedScheduled
+            if agendaItem.properties["Scheduled"] then
+                parsedScheduled = common.parseTaskTime(agendaItem.properties["Scheduled"])
 
-                    local scheduledTimeStr, parsedScheduled
-                    local scheduled=taskProperties["Scheduled"]
-                    if scheduled then
-                        scheduledTimeStr = scheduled[2]
-                        parsedScheduled = common.parseTaskTime(scheduledTimeStr)
+                if not parsedScheduled then print("for some reason, scheduled could not correctly parsed") return end
+            end
 
-                        if not parsedScheduled then print("for some reason, scheduled could not correctly parsed") return end
+            local parsedDeadline
+            if agendaItem.properties["Deadline"] then
+                parsedDeadline = common.parseTaskTime(agendaItem.properties["Deadline"])
+
+                if not parsedDeadline then print("for some reason, deadline could not correctly parsed") return end
+            end
+            ------------------
+
+            --If only Scheduled time exists
+            if agendaItem.properties["Scheduled"] and (not agendaItem.properties["Deadline"]) then
+                local scheduledDate = agendaItem.properties["Scheduled"]:match("([0-9]+%-[0-9]+%-[0-9]+)")
+                if days[scheduledDate] and days[scheduledDate]["exists"] then
+                    --if its info, do not show "Scheduled:" text
+                    if agendaItem.agendaItem[1]=="INFO" then
+                        table.insert(days[scheduledDate]["tasks"],
+                            showTimeStrInAgendaItem(agendaItem.properties["Scheduled"])
+                            ..agendaItem.agendaItem[1].." "..agendaItem.agendaItem[2])
+                    else
+                        table.insert(days[scheduledDate]["tasks"],
+                            "Scheduled: "..showTimeStrInAgendaItem(agendaItem.properties["Scheduled"])..
+                            agendaItem.agendaItem[1].." "..agendaItem.agendaItem[2])
                     end
+                end
 
-                    local deadlineTimeStr, parsedDeadline
-                    local deadline=taskProperties["Deadline"]
-                    if deadline then
-                        deadlineTimeStr = deadline[2]
-                        parsedDeadline = common.parseTaskTime(deadlineTimeStr)
+                --show the task in today until its done, as it has a scheduled date but no deadline
+                if agendaItem.agendaItem[1]=="TODO" and days[currentDateStr] and (parsedScheduled["unixTime"] < currentDayStart) then
+                    table.insert(days[currentDateStr]["tasks"],
+                        agendaItem.agendaItem[1].." "..agendaItem.agendaItem[2]..
+                        " (SC: "..remainingOrPassedDays(currentDateStr, agendaItem.properties["Scheduled"])..")"
+                    )
+                end
 
-                        if not parsedDeadline then print("for some reason, deadline could not correctly parsed") return end
+            --If only Deadline exists
+            elseif (not agendaItem.properties["Scheduled"]) and agendaItem.properties["Deadline"] then
+                --insert text to deadline
+                local deadlineDate = agendaItem.properties["Deadline"]:match("([0-9]+%-[0-9]+%-[0-9]+)")
+                if days[deadlineDate] and days[deadlineDate]["exists"] then
+                    table.insert(days[deadlineDate]["tasks"],
+                        "Deadline: "..showTimeStrInAgendaItem(agendaItem.properties["Deadline"])..
+                        agendaItem.agendaItem[1].." "..agendaItem.agendaItem[2])
+                end
+                --insert text to current date if the current date is close to task deadline by n days
+                --also if current date is not higher than the task deadline originally
+                if agendaItem.agendaItem[1] == "TODO" and days[currentDateStr] and (currentDayStart < parsedDeadline["unixTime"]) and
+                (currentDayStart + ((common.config.remindDeadlineInDays+1)*common.oneDay) > parsedDeadline["unixTime"]) then
+
+                    table.insert(days[currentDateStr]["tasks"],
+                        agendaItem.agendaItem[1].." "..agendaItem.agendaItem[2]..
+                        " (DL: "..remainingOrPassedDays(currentDateStr, agendaItem.properties["Deadline"])..")")
+                end
+
+            --If both Scheduled and Deadline do exist
+            elseif agendaItem.properties["Scheduled"] and agendaItem.properties["Deadline"] then
+                --insert text to scheduled date
+                local scheduledDate=agendaItem.properties["Scheduled"]:match("([0-9]+%-[0-9]+%-[0-9]+)")
+                if days[scheduledDate] and days[scheduledDate]["exists"] then
+                    if agendaItem.agendaItem[1] == "INFO" then
+                        table.insert(days[scheduledDate]["tasks"],
+                            agendaItem.agendaItem[1].." "..agendaItem.agendaItem[2]..
+                            " (DL: "..remainingOrPassedDays(scheduledDate, agendaItem.properties["Deadline"])..")")
+                    else
+                        table.insert(days[scheduledDate]["tasks"],
+                            "Scheduled: "..agendaItem.agendaItem[1].." "..agendaItem.agendaItem[2]..
+                            " (DL: "..remainingOrPassedDays(scheduledDate, agendaItem.properties["Deadline"])..")")
                     end
+                end
+                --insert text to deadline date
+                local deadlineDate=agendaItem.properties["Deadline"]:match("([0-9]+%-[0-9]+%-[0-9]+)")
+                if days[deadlineDate] and days[deadlineDate]["exists"] then
+                    table.insert(days[deadlineDate]["tasks"],
+                        "Deadline: "..showTimeStrInAgendaItem(agendaItem.properties["Deadline"])..
+                        agendaItem.agendaItem[1].." "..agendaItem.agendaItem[2])
+                end
+                --insert text to current date if its between scheduled and deadline date
+                if agendaItem.agendaItem[1] == "TODO" and days[currentDateStr] and
+                (currentDayStart < parsedDeadline["unixTime"]) and (parsedScheduled["unixTime"] < currentDayStart) and
+                currentDateStr ~= agendaItem.properties["Deadline"]:match("([0-9]+%-[0-9]+%-[0-9]+)") and
+                currentDateStr ~= agendaItem.properties["Scheduled"]:match("([0-9]+%-[0-9]+%-[0-9]+)") then
+                    table.insert(days[currentDateStr]["tasks"],
+                        agendaItem.agendaItem[1].." "..agendaItem.agendaItem[2]..
+                        " (DL: "..remainingOrPassedDays(currentDateStr, agendaItem.properties["Deadline"])..")")
+                end
 
-                    --------------------------
-
-                    --if only scheduled exists
-                    if scheduled and (not deadline) then
-                        local scheduledDate=scheduledTimeStr:match("([0-9]+%-[0-9]+%-[0-9]+)")
-                        if days[scheduledDate] and days[scheduledDate]["exists"] then
-                            --if its info, do not show "Scheduled:" text
-                            if taskType=="INFO" then
-                                table.insert(days[scheduledDate]["tasks"],
-                                    showTimeStrInAgendaItem(scheduledTimeStr)..taskType.." "..title)
-                            else
-                                table.insert(days[scheduledDate]["tasks"],
-                                    "Scheduled: "..showTimeStrInAgendaItem(scheduledTimeStr)..taskType.." "..title)
-                            end
-                        end
-
-                        --show the task in today until its done, as it has a scheduled date but no deadline
-                        if taskType=="TODO" and days[currentDateStr] and (parsedScheduled["unixTime"] < currentDayStart) then
-                            table.insert(days[currentDateStr]["tasks"],
-                                taskType.." "..title.." (SC: "..remainingOrPassedDays(currentDateStr, scheduledTimeStr)..")"
-                            )
-                        end
-
-                    --if only deadline exists
-                    elseif deadline and (not scheduled) then
-                        --insert text to deadline
-                        local deadlineDate=deadlineTimeStr:match("([0-9]+%-[0-9]+%-[0-9]+)")
-                        if days[deadlineDate] and days[deadlineDate]["exists"] then
-                            table.insert(days[deadlineDate]["tasks"],
-                                "Deadline: "..showTimeStrInAgendaItem(deadlineTimeStr)..taskType.." "..title
-                            )
-                        end
-                        --insert text to current date if the current date is close to task deadline by n days
-                        --also if current date is not higher than the task deadline originally
-                        if taskType == "TODO" and days[currentDateStr] and (currentDayStart < parsedDeadline["unixTime"]) and
-                        (currentDayStart + ((common.config.remindDeadlineInDays+1)*common.oneDay) > parsedDeadline["unixTime"]) then
-
-                            table.insert(days[currentDateStr]["tasks"],
-                                taskType.." "..title.." (DL: "..remainingOrPassedDays(currentDateStr, deadlineTimeStr)..")"
-                            )
-                        end
-
-                    --if both scheduled and deadline exists
-                    elseif scheduled and deadline then
-                        --insert text to scheduled date
-                        local scheduledDate=scheduledTimeStr:match("([0-9]+%-[0-9]+%-[0-9]+)")
-                        if days[scheduledDate] and days[scheduledDate]["exists"] then
-                            if taskType == "INFO" then
-                                table.insert(days[scheduledDate]["tasks"],
-                                    taskType.." "..title.." (DL: "..remainingOrPassedDays(scheduledDate, deadlineTimeStr)..")"
-                                )
-                            else
-                                table.insert(days[scheduledDate]["tasks"],
-                                    "Scheduled: "..taskType.." "..title.." (DL: "..remainingOrPassedDays(scheduledDate, deadlineTimeStr)..")"
-                                )
-                            end
-                        end
-                        --insert text to deadline date
-                        local deadlineDate=deadlineTimeStr:match("([0-9]+%-[0-9]+%-[0-9]+)")
-                        if days[deadlineDate] and days[deadlineDate]["exists"] then
-                            table.insert(days[deadlineDate]["tasks"],
-                                "Deadline: "..showTimeStrInAgendaItem(deadlineTimeStr)..taskType.." "..title
-                            )
-                        end
-                        --insert text to current date if its between scheduled and deadline date
-                        if taskType == "TODO" and days[currentDateStr] and
-                        (currentDayStart < parsedDeadline["unixTime"]) and (parsedScheduled["unixTime"] < currentDayStart) and
-                        currentDateStr ~= deadlineTimeStr:match("([0-9]+%-[0-9]+%-[0-9]+)") and currentDateStr ~= scheduledTimeStr:match("([0-9]+%-[0-9]+%-[0-9]+)") then
-                            table.insert(days[currentDateStr]["tasks"],
-                                taskType.." "..title.." (DL: "..remainingOrPassedDays(currentDateStr, deadlineTimeStr)..")"
-                            )
-                        end
-
-                    --if both scheduled and deadline times does not exist
-                    elseif (not scheduled) and (not deadline) then
-                        --show the task in today if its not finished
-                        if taskType=="TODO" and days[currentDateStr] then
-                            table.insert(days[currentDateStr]["tasks"],
-                                taskType.." "..title
-                            )
-                        end
-                    end
-
-                    --if task is a repeating task (repeat indicator on the scheduled), show the incoming days at the agenda until the deadline
-                    if (taskType == "TODO" or taskType == "INFO") and parsedScheduled and parsedScheduled["nextUnixTime"] then
-                        for _, sortedDate in ipairs(sortedDates) do
-                            local sdYear, sdMonth, sdDay = sortedDate:match("([0-9]+)-([0-9]+)-([0-9]+)")
-                            local sdUnixTime = os.time({year=sdYear, month=sdMonth, day=sdDay})
-
-                            --break the loop if the sortedDate exceeds the deadline
-                            if parsedDeadline and parsedDeadline["unixTime"] and sdUnixTime >= parsedDeadline["unixTime"] then
-                                break
-                            end
-
-                            --Only show in the future dates and not in the scheduled day as its already inserted to that day in the above codes.
-                            if parsedScheduled["unixTime"] <= sdUnixTime and
-                            scheduledTimeStr:match("([0-9]+%-[0-9]+%-[0-9]+)") ~= sortedDate then
-                                if common.IsDateInRangeOfGivenRepeatingTimeStr(scheduledTimeStr, sortedDate) then
-                                    if taskType == "INFO" then
-                                        table.insert(days[sortedDate]["tasks"],
-                                            showTimeStrInAgendaItem(scheduledTimeStr)..taskType.." "..title
-                                        )
-                                    else
-                                        table.insert(days[sortedDate]["tasks"],
-                                            "Scheduled: "..showTimeStrInAgendaItem(scheduledTimeStr)..taskType.." "..title
-                                        )
-                                    end
-                                end
-                            end
-                        end
-                    end
-
-                    --if task is a repeating task (repeat indicator on the deadline), show the incoming days at the agenda.
-                    if (taskType == "TODO" or taskType == "INFO") and parsedDeadline and parsedDeadline["nextUnixTime"] then
-                        for _, sortedDate in ipairs(sortedDates) do
-                            local sdYear, sdMonth, sdDay = sortedDate:match("([0-9]+)-([0-9]+)-([0-9]+)")
-                            local sdUnixTime = os.time({year=sdYear, month=sdMonth, day=sdDay})
-
-                            --Only show in future dates
-                            if parsedDeadline["unixTime"] <= sdUnixTime and
-                            deadlineTimeStr:match("([0-9]+%-[0-9]+%-[0-9]+)") ~= sortedDate then
-                                if common.IsDateInRangeOfGivenRepeatingTimeStr(deadlineTimeStr, sortedDate) then
-                                    table.insert(days[sortedDate]["tasks"],
-                                        "Deadline: "..showTimeStrInAgendaItem(deadlineTimeStr)..taskType.." "..title
-                                    )
-                                end
-                            end
-                        end
-                    end
-
-                    --If a task is done, show the time in Completion property in the agenda view.
-                    if taskProperties["Completion"] and taskProperties["Completion"][2] then
-                        for _,sortedDate in ipairs(sortedDates) do
-                            if taskProperties["Completion"][2]:match("([0-9]+%-[0-9]+%-[0-9]+)") == sortedDate then
-                                    table.insert(days[sortedDate]["tasks"],
-                                        "Completion: "..showTimeStrInAgendaItem(taskProperties["Completion"][2])..taskType.." "..title)
-                            end
-                        end
-                    end
-
-                    --Show logbook entries in the graph
-                    if (parsedDeadline and parsedDeadline["nextUnixTime"]) or
-                    (parsedScheduled and parsedScheduled["nextUnixTime"]) then
-                        local logbookItems = common.getLogbookEntries(file_content, lineNumber)
-
-                        if logbookItems then
-                            for logbookDate,logbookItem in pairs(logbookItems) do
-                                for _,sortedDate in ipairs(sortedDates) do
-                                    if logbookDate == sortedDate then
-                                        table.insert(days[sortedDate]["tasks"],
-                                            "Repeat: "..showTimeStrInAgendaItem(logbookItem[2])..taskType.." "..title)
-                                    end
-                                end
-                            end
-                        end
-                    end
-
+            --If not Scheduled nor Deadline exists
+            elseif (not agendaItem.properties["Scheduled"]) and (not agendaItem.properties["Deadline"]) then
+                --show the task in today if its not finished
+                if agendaItem.agendaItem[1]=="TODO" and days[currentDateStr] then
+                    table.insert(days[currentDateStr]["tasks"],
+                        agendaItem.agendaItem[1].." "..agendaItem.agendaItem[2])
                 end
             end
+
+
+            --if task is a repeating task (repeat indicator on the scheduled), show the incoming days at the agenda until the deadline
+            if (agendaItem.agendaItem[1] == "TODO" or agendaItem.agendaItem[1] == "INFO") and parsedScheduled and parsedScheduled["nextUnixTime"] then
+                for _, sortedDate in ipairs(sortedDates) do
+                    local sdYear, sdMonth, sdDay = sortedDate:match("([0-9]+)-([0-9]+)-([0-9]+)")
+                    local sdUnixTime = os.time({year=sdYear, month=sdMonth, day=sdDay})
+
+                    --break the loop if the sortedDate exceeds the deadline
+                    if parsedDeadline and parsedDeadline["unixTime"] and sdUnixTime >= parsedDeadline["unixTime"] then
+                        break
+                    end
+
+                    --Only show in the future dates and not in the scheduled day as its already inserted to that day in the above codes.
+                    if parsedScheduled["unixTime"] <= sdUnixTime and
+                    agendaItem.properties["Scheduled"]:match("([0-9]+%-[0-9]+%-[0-9]+)") ~= sortedDate then
+                        if common.IsDateInRangeOfGivenRepeatingTimeStr(agendaItem.properties["Scheduled"], sortedDate) then
+                            if agendaItem.agendaItem[1] == "INFO" then
+                                table.insert(days[sortedDate]["tasks"],
+                                    showTimeStrInAgendaItem(agendaItem.properties["Scheduled"])..
+                                    agendaItem.agendaItem[1].." "..agendaItem.agendaItem[2])
+                            else
+                                table.insert(days[sortedDate]["tasks"],
+                                    "Scheduled: "..showTimeStrInAgendaItem(agendaItem.properties["Scheduled"])..
+                                    agendaItem.agendaItem[1].." "..agendaItem.agendaItem[2])
+                            end
+                        end
+                    end
+                end
+            end
+
+            --if task is a repeating task (repeat indicator on the deadline), show the incoming days at the agenda.
+            if (agendaItem.agendaItem[1] == "TODO" or agendaItem.agendaItem[1] == "INFO") and parsedDeadline and parsedDeadline["nextUnixTime"] then
+                for _, sortedDate in ipairs(sortedDates) do
+                    local sdYear, sdMonth, sdDay = sortedDate:match("([0-9]+)-([0-9]+)-([0-9]+)")
+                    local sdUnixTime = os.time({year=sdYear, month=sdMonth, day=sdDay})
+
+                    --Only show in future dates
+                    if parsedDeadline["unixTime"] <= sdUnixTime and
+                    agendaItem.properties["Deadline"]:match("([0-9]+%-[0-9]+%-[0-9]+)") ~= sortedDate then
+                        if common.IsDateInRangeOfGivenRepeatingTimeStr(agendaItem.properties["Deadline"], sortedDate) then
+                            table.insert(days[sortedDate]["tasks"],
+                                "Deadline: "..showTimeStrInAgendaItem(agendaItem.properties["Deadline"])..
+                                agendaItem.agendaItem[1].." "..agendaItem.agendaItem[2]
+                            )
+                        end
+                    end
+                end
+            end
+
+            --If a task is done, show the time in Completion property in the agenda view.
+            if agendaItem.properties["Completion"] then
+                for _,sortedDate in ipairs(sortedDates) do
+                    if agendaItem.properties["Completion"]:match("([0-9]+%-[0-9]+%-[0-9]+)") == sortedDate then
+                            table.insert(days[sortedDate]["tasks"],
+                                "Completion: "..showTimeStrInAgendaItem(agendaItem.properties["Completion"])..
+                                agendaItem.agendaItem[1].." "..agendaItem.agendaItem[2])
+                    end
+                end
+            end
+
+            --Show logbook entries in the graph
+            if agendaItem.logbookItems then
+                for logbookDate,logbookItem in pairs(agendaItem.logbookItems) do
+                    for _,sortedDate in ipairs(sortedDates) do
+                        if logbookDate == sortedDate then
+                            table.insert(days[sortedDate]["tasks"],
+                                "Repeat: "..showTimeStrInAgendaItem(logbookItem[2])..
+                                agendaItem.agendaItem[1].." "..agendaItem.agendaItem[2])
+                        end
+                    end
+                end
+            end
+
         end
     end
 

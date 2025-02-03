@@ -33,12 +33,12 @@ local function checkTask(checkAction)
         ---THE REST IS DEFAULT CHECKING ACTION
         local currentTime = os.time()
 
-        local taskProperties = common.getTaskProperties(currentBufLines, lineNum)
+        local taskProperties = common.getTaskProperties(currentBufLines, lineNum, false)
 
         local scheduledTimeStr, parsedScheduled
         local scheduled=taskProperties["Scheduled"]
         if scheduled then
-            scheduledTimeStr = scheduled[2]
+            scheduledTimeStr = scheduled
             parsedScheduled = common.parseTaskTime(scheduledTimeStr)
 
             if not parsedScheduled then print("for some reason, scheduled could not correctly parsed") return end
@@ -57,7 +57,7 @@ local function checkTask(checkAction)
         local deadlineTimeStr, parsedDeadline
         local deadline=taskProperties["Deadline"]
         if deadline then
-            deadlineTimeStr = deadline[2]
+            deadlineTimeStr = deadline
             parsedDeadline = common.parseTaskTime(deadlineTimeStr)
 
             if not parsedDeadline then print("for some reason, deadline could not correctly parsed") return end
