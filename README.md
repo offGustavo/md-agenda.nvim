@@ -95,17 +95,17 @@ Markdown time and task management plugin for NeoVim, inspired by org-agenda.
 ```
 
 ```md
-    v--- Task Type         v--- Progress Indicator
+    v--- Task Type          v--- Progress Indicator
 ## TODO: Task description (2/n) #tag
 - Deadline: `2024-03-03 12:32`
 - Scheduled: `2024-01-04 14:25 +2d`
-  ^--- Task Properties         ^-- Repeat Indicator
+  ^--- Task Properties          ^-- Repeat Indicator
 
 <details logbook>
 
           v--- Repeat Date
   - [x] `2024-02-03 13:24` `(n/n)` <--- Logbook Item
-              Progress ---^ ^--- Goal
+                 Progress ---^ ^--- Goal
 </details>
 ```
 
