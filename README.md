@@ -36,6 +36,8 @@ Org-Agenda like, Markdown time and task management plugin for NeoVim.
         vim.keymap.set('n', '<A-s>', ":TaskScheduled<CR>")
         vim.keymap.set('n', '<A-d>', ":TaskDeadline<CR>")
 
+        vim.keymap.set('n', '<A-f>', ":TaskSearch<CR>")
+
         --optional: create your own agenda view command to show tasks with a specific tag only
         vim.api.nvim_create_user_command("WorkAgenda", function()
             vim.cmd("AgendaViewWTF work companyA") --Run the agenda view with tag filters
@@ -45,7 +47,10 @@ Org-Agenda like, Markdown time and task management plugin for NeoVim.
 ```
 
 ## Roadmap
-- Using a custom function for folding instead of markers. (help needed)
+- Use a custom function for folding instead of markers. (help needed, low priority)
+- Highlight syntax if not using TreeSitter. (high priority)
+- Go to the task's location when a command used in the agenda view while cursor is on the task.
+- Update the parent task's progress indicator and type if a sub task is done. (medium priority)
 
 ---
 
