@@ -56,6 +56,9 @@ local function remainingOrPassedDays(fromDate ,targetDate)
     end
 end
 
+--Only renewing the cache in agenda view open. Pagination uses already existing cache.
+local agendaItemsCache = {}
+
 ---------------AGENDA VIEW---------------
 local function getAgendaTasks(startTimeUnix, endTimeUnix)
     local currentDateTable = os.date("*t")
@@ -85,9 +88,7 @@ local function getAgendaTasks(startTimeUnix, endTimeUnix)
         dayAgenda=true
     end]]
 
-    local agendaItems = M.getAgendaItems("")
-
-    for _, agendaItem in ipairs(agendaItems) do
+    for _, agendaItem in ipairs(agendaItemsCache) do
         if agendaItem.agendaItem[1]~="HABIT" and includeTask(agendaItem.agendaItem[3]) then
 
             ------------------
@@ -362,7 +363,11 @@ local function renderAgendaView()
     vim.api.nvim_buf_set_option(bufNumber, "modified", false)
 end
 
-vim.api.nvim_create_user_command('AgendaView', function()filterByTags={};renderAgendaView()end, {})
+vim.api.nvim_create_user_command('AgendaView', function()
+    filterByTags={};
+    agendaItemsCache = M.getAgendaItems("")
+    renderAgendaView()
+end, {})
 
 vim.api.nvim_create_user_command('AgendaViewWTF', function(opts)
     local args = {}
@@ -371,6 +376,7 @@ vim.api.nvim_create_user_command('AgendaViewWTF', function(opts)
     end
     filterByTags = args
 
+    agendaItemsCache = M.getAgendaItems("")
     renderAgendaView()
 end, {nargs = '*'})
 
