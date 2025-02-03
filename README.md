@@ -171,8 +171,8 @@ A Progress indicator is splitted into two parts. The **progress (x)** and the **
 | - | - |
 | no **Scheduled** nor **Deadline** | If its **TODO**, its shown today. |
 | **Scheduled** exists but not **Deadline** | Its shown in the scheduled day. Also, in today until its finished. |
-| **Deadline** exists but not **Scheduled** | Its shown in the deadline day. Also, based on the configuration, a reminder is shown today. |
-| both **Scheduled** and **Deadline** exists | It is shown in both deadline and scheduled days. Also shown in today if the current date is between them. |
+| **Deadline** exists but not **Scheduled** | Its shown in the deadline day. Also, based on the configuration, a reminder is shown today if the agenda type is **TODO**. |
+| Both **Scheduled** and **Deadline** exists | It is shown in both deadline and scheduled days. Also shown in today if the current date is between them and the agenda type is **TODO**. |
 | Has **Repeat Indicator** | It is shown in the future planned dates until the deadline. |
 | **Completion** exists | It is shown in the completion day. |
 | Has **Logbook** items | It is shown in the repeat dates. |

@@ -151,7 +151,7 @@ local function getAgendaTasks(startTimeUnix, endTimeUnix)
                         end
                         --insert text to current date if the current date is close to task deadline by n days
                         --also if current date is not higher than the task deadline originally
-                        if days[currentDateStr] and (currentDayStart < parsedDeadline["unixTime"]) and
+                        if taskType == "TODO" and days[currentDateStr] and (currentDayStart < parsedDeadline["unixTime"]) and
                         (currentDayStart + ((common.config.remindDeadlineInDays+1)*common.oneDay) > parsedDeadline["unixTime"]) then
 
                             table.insert(days[currentDateStr]["tasks"],
@@ -182,7 +182,7 @@ local function getAgendaTasks(startTimeUnix, endTimeUnix)
                             )
                         end
                         --insert text to current date if its between scheduled and deadline date
-                        if days[currentDateStr] and
+                        if taskType == "TODO" and days[currentDateStr] and
                         (currentDayStart < parsedDeadline["unixTime"]) and (parsedScheduled["unixTime"] < currentDayStart) and
                         currentDateStr ~= deadlineTimeStr:match("([0-9]+%-[0-9]+%-[0-9]+)") and currentDateStr ~= scheduledTimeStr:match("([0-9]+%-[0-9]+%-[0-9]+)") then
                             table.insert(days[currentDateStr]["tasks"],
