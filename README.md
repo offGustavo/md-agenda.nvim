@@ -1,5 +1,5 @@
 # md-agenda.nvim
-Org-Agenda like, Markdown time and task management plugin for NeoVim.
+Markdown time and task management plugin for NeoVim, inspired by org-agenda.
 
 ## Installation
 ### Requirements
@@ -27,6 +27,7 @@ Org-Agenda like, Markdown time and task management plugin for NeoVim.
 
         --optional: set keymaps for commands
         vim.keymap.set('n', '<A-t>', ":CheckTask<CR>")
+        vim.keymap.set('n', '<A-c>', ":CancelTask<CR>")
 
         vim.keymap.set('n', '<A-h>', ":HabitView<CR>")
         vim.keymap.set('n', '<A-a>', ":AgendaView<CR>")
@@ -49,17 +50,27 @@ Org-Agenda like, Markdown time and task management plugin for NeoVim.
 ## Roadmap
 - Use a custom function for folding instead of markers. (help needed, low priority)
 - Highlight syntax if not using TreeSitter. (high priority)
-- Go to the task's location when a command used in the agenda view while cursor is on the task.
 - Update the parent task's progress indicator and type if a sub task is done. (medium priority)
-
----
+***
 
 ## Agenda Item Structure
-Here are some example tasks:
+
+**This plugin only considers markdown headers starting with these strings as agenda items:**
+
+| Type | Description |
+| - | - |
+| **TODO** | For regular tasks. |
+| **HABIT** | For habit tracking. Only shown in the habit view. It must contain a repeating scheduled property. |
+| **INFO** | Just for viewing important events in the agenda view. |
+| **DONE** | When a task is completed in time, it's type changes to DONE. |
+| **DUE** | When a task is completed after the given deadline, it's type changes to DUE. |
+| **CANCELLED** | When a TODO task is cancelled, it's type changes to CANCELLED. |
+
+**Here are some example agenda items to understand their structure better:**
 ```md
 # TODO: Learn to tie your shoes #tag
 
-# TODO: Mid-term exams :university:vimwikiTag:
+# TODO: Mid-term exams :university:tag2:
 - Deadline: `2025-02-15 00:00`
 - Scheduled: `2025-02-06 00:00`
 
@@ -67,7 +78,7 @@ Here are some example tasks:
 - Completion: `2025-02-01 00:13`
 
 # HABIT: Read a book (17/30)
-- Last Completion: `2025-01-30 16:58`
+- Last Repeat: `2025-01-30 16:58`
 - Scheduled: `2025-01-31 00:00 .+1d`
 <details logbook><!--{{{-->
 
@@ -82,112 +93,117 @@ Here are some example tasks:
 # INFO: International Workers' Day #event
 - Scheduled: `2025-05-01 00:00 +1y`
 ```
-### Agenda Item Types
-This plugin considers markdown headers that starts with these strings as agenda items:
 
-**TODO:**\
-Regular agenda item that should be done.
-- Can hold "Deadline" and "Scheduled" properties.
-- Can be a repeating task.
+```md
+    v--- Task Type         v--- Progress Indicator
+## TODO: Task description (2/n) #tag
+- Deadline: `2024-03-03 12:32`
+- Scheduled: `2024-01-04 14:25 +2d`
+  ^--- Task Properties         ^-- Repeat Indicator
 
-**HABIT:**\
-An agenda item for habit tracking.
-- Only shown in the habit view.
-- It must contain a repeating "Scheduled" property.
+<details logbook>
 
-**INFO:**\
-Only for viewing in the agenda view. Useful for holidays, anniversaries etc.
-- It must contain a repeating "Scheduled" property.
-
-**DONE:**\
-If a task item is completed before the deadline, it is marked as done.
-- For repeating tasks, if the next scheduled time is going to exceed the given deadline, the task is marked as done.
-
-**DUE:**\
-If a task item is completed after the deadline, it is marked as due.
-- For repeating tasks, if the current scheduled time exceeds the given deadline, the task is marked as due.
-
-**CANCELLED:**\
-To cancel a todo task, use `:CancelTask` command.
-- Only TODO type can be cancelled.
+          v--- Repeat Date
+  - [x] `2024-02-03 13:24` `(n/n)` <--- Logbook Item
+              Progress ---^ ^--- Goal
+</details>
+```
 
 ### Repeating Tasks
-To make a task repeating, you should add the repeat indicator at the end of the "Deadline" or "Scheduled" property.
-- You cannot add the repeat indicator to both of them at the same task.
+**To make an item repeated**, you should add **the repeat indicator** at the end of the **Deadline** or **Scheduled** property.
 
-**Repeat Indicator Types**:
-- **"+"**: Shifts the date to, for example, one month (+1m) after the scheduled time or deadline. It can be still in the past and overdue even after marking it.
-- **"++"**: Shifts the date by, for example, at least one week (++1w) from scheduled time or deadline, but also by as many days as it takes to get the same weekday into the future.
-- **".+"**: Shifts the date to, for example, one month (.+1m) after today.
+<mark>**You cannot add the repeat indicator to both of them at the same task.**</mark>
 
-**Repeat Indicator Intervals**:
-- **"d"**: n day after.
-- **"w"**: n week after, same weekday.
-- **"m"**: n month after, same day of the month.
-- **"y"**: n year after, same month and day of the month.
+| Repeat Indicator Type | Description |
+| :-: | - |
+| **"+"** | Shifts the date to, for example, one month **( +1m )** after the scheduled time or deadline. It can be still in the past and overdue even after marking it. |
+| **"++"** | Shifts the date by, for example, at least one week **( ++1w )** from scheduled time or deadline, but also by as many days as it takes to get the same weekday into the future. |
+| **".+"** | Shifts the date to, for example, one month **( .+1m )** after today. |
 
-+ **"x"**: Looks for the weekday's occurrence number from the start in the month. Example: Second Monday in January. Then gets the same date n occurrence after.
-+ **"z"**: Looks for the weekday's occurrence number from the end in the month. Example: Last Friday in May. Then gets the same date n occurrence after.
+| Repeat Indicator Interval | Description |
+| :-: | - |
+| **"d"** | n day after. |
+| **"w"** | n week after, same weekday. |
+| **"m"** | n month after, same day of the month. |
+| **"y"** | n year after, same month and day of the month. |
+| **"x"** | Looks for the weekday's occurrence number from the start in the month. **Example:** Second Monday in January. Then gets the same date n occurrence after. |
+| **"z"** | Looks for the weekday's occurrence number from the end in the month. **Example:** Last Friday in May. Then gets the same date n occurrence after. |
 
-Still not satisfied? You can also run lua scripts inside task properties by placing the script's absolute path inside $(). Here is an example:
+Still not satisfied? You can also run lua scripts inside task properties by placing the script's absolute path inside `$()`
+
+**Here is an example:**
 ```md
 <!--test.lua returns a date string in the format used by this plugin.-->
-<!--By doing this, you can show this task in the graph view, in the returned date.-->
 ## TODO: Test Task
 - Scheduled: `$(/path/to/lua/script/test.lua)`
 ```
 
-**Progress Indicator**:\
-If you want to save the progress to the logbook, place progress indicator to the task.
+### **Progress Indicator; (x/y)**
+A Progress indicator is splitted into two parts. The **progress (x)** and the **goal (y)**.
 
-Progress indicator looks like this: (x/y). y is the goal and x is the current progress.
+- **In repeating tasks**, upon task checking, the progress is directly saved to the logbook and progress in the item is reseted.
 
 ## Checking a Task
-To check a task, place cursor to it and use `:CheckTask` command.
+| Command | Description |
+| - | - |
+| `:CheckTask` | Check the item by placing the cursor on it. |
+| `:CancelTask` | If its **TODO**, change the item type to **CANCELLED** |
 
-Tasks cannot be checked when:
-- The task is malformed
-- Scheduled time did not arrive
-- The task is DONE, DUE or INFO
-- Repeating task has a progress indicator with a zero progress
+<mark>**Items cannot be checked when:**</mark>
+1. The task is malformed.
+2. The time in **Scheduled** property did not arrive.
+3. The item type is not **TODO** or **HABIT**.
+4. Repeating task has a **progress indicator** with a **zero** progress.
 
-If the task is a repeating task, the completed task is directly saved to the logbook without any change in the task type.
+**If the agenda item has a repeat indicator**;
+- the completed task is directly saved to the logbook without any change on the task type.
+- if the current scheduled time exceeds the given deadline, the task is marked as due.
+- if the next scheduled time is going to exceed the given deadline, the task is marked as done.
 
 ## Agenda View
-Use `:AgendaView` command to open agenda view. To switch between pages, use `:PrevAgendaPage` and `:NextAgendaPage`. (Pages are relative to today)
+| Command | Description |
+| - | - |
+| `:AgendaView` | Open the agenda view. |
+| `:AgendaViewWTF tag1 tag2` | Open the agenda view, and only show items which contains given tags. You can also place item types like TODO to the arguments instead of tags.|
+| `:PrevAgendaPage` `:NextAgendaPage` | Switch between pages back and forth respectively. (Pages are relative to today.)|
 
-Or if you want to show tasks with specific tags and agenda item types only, use `:AgendaViewWTF itemType tag2`,
+| Condition | Description |
+| - | - |
+| no **Scheduled** nor **Deadline** | If its **TODO**, its shown today. |
+| **Scheduled** exists but not **Deadline** | Its shown in the scheduled day. Also, in today until its finished. |
+| **Deadline** exists but not **Scheduled** | Its shown in the deadline day. Also, based on the configuration, a reminder is shown today. |
+| both **Scheduled** and **Deadline** exists | It is shown in both deadline and scheduled days. Also shown in today if the current date is between them. |
+| Has **Repeat Indicator** | It is shown in the future planned dates until the deadline. |
+| **Completion** exists | It is shown in the completion day. |
+| Has **Logbook** items | It is shown in the repeat dates. |
 
-**Behavior**:
-+ If the task has a scheduled time but no deadline time, it is shown on the scheduled day. Also, it is shown today until finished.
-+ If the task has a deadline time but no scheduled time, it is shown on the deadline day. Also, based on the configuration, if today is close to the deadline, it's shown today.
-+ If the task has both a deadline and scheduled time, it is shown in both the deadline and scheduled time. Also, if today is between these times, it is shown today.
-+ If the task is a repeating task, it is shown in the scheduled time and the next days based on the repeat indicator until the deadline.
-+ If the task has no deadline nor scheduled time, it is shown today.
+To show **reminders about special days like "April Fools' Day,"** you can add the [ready-made files](https://github.com/zenarvus/md-agenda.nvim/tree/main/specialDays) to your agendaFiles configuration, or you can create one yourself.
 
 ## Habit View
-To open the habit view, use `:HabitView` command. Only habit tasks shown in the habit view.
+| Command | Description |
+| - | - |
+| `:HabitView` | Opens the habit view (aka: consistency graph.) Only habit items are shown in it. |
 
-**Colors**
-- **Yellow**: If the task is scheduled on that time.
-- **Blue**: If you do not have to do the task on that time.
-- **Green**: If the task is done on that day.
-- **Light Green**: If progress had been made but the task was not done.
-- If the habit is scheduled in the past but has not been made
-  + Today is shown in **yellow**
-  + That past scheduled day is shown in **dark yellow**.
-- **Red**: If task had to be done that day but it was not.
-- **Gray**: If the deadline on that time.
-
-### Special Days and Holidays
-To show special days like april fools' day in the graph view, download the files you want in [specialDays](https://github.com/zenarvus/md-agenda.nvim/tree/main/specialDays) folder and add them to the agendaFiles configuration. They only contain events in fixed, non changing dates in Gregorian calendar.
-
-You may consider creating your own and, if it contains non-fixed dates, updating with a script.
+| Color | Condition|
+| - | - |
+| <span style="color:yellow">**Yellow**</span> | If the task is scheduled on that time. Also, If the habit is scheduled in the past but has not been made, today is shown in yellow. |
+| <span style="color:#DEC20B">**Dark Yellow**</span> | The passed scheduled date. |
+| <span style="color:blue">**Blue**</span> | If you do not have to do the task on that time. |
+| <span style="color:green">**Green**</span> | If the task is done on that day. |
+| <span style="color:lightgreen">**Light Green**</span> | If progress had been made but the task was not done. |
+| <span style="color:red">**Red**</span> | If the task had to be done that day but it was not. |
+| <span style="color:gray">**Gray**</span> | If the deadline is on that time. |
 
 ## Date Selection
-To insert a deadline or scheduled time, place cursor to the task and use one of the `:TaskDeadline` or `:TaskScheduled` commands.\
-Telescope will list date items starting from today to next 365 days.
+Upon running one of the date selection commands, telescope will list date items starting from today to next 365 days.
+
+| Command | Description |
+| - | - |
+| `:TaskScheduled` | Insert **Scheduled** property by placing cursor on the agenda item. |
+| `:TaskDeadline` | Insert **Deadline** property by placing cursor on the agenda item. |
+
 
 ## Agenda Item Search
-To find an agenda item's location, use `:TaskSearch` command.\
-Telescope will list all tasks and selecting one will navigate to that task.
+| Command | Description |
+| - | - |
+| `:TaskSearch` | Lists all agenda items with telescope and navigates to the selected item's location. |
