@@ -26,6 +26,9 @@ Markdown time and task management plugin for NeoVim, inspired by org-agenda.
             habitViewFutureItems=3 --How many future days should be in the habit view? -default: 3
             foldmarker="{{{,}}}" --For folding logbook entries -default: {{{,}}}
 
+            --Custom types that you can use instead of TODO - default: {}
+            customTodoTypes={SOMEDAY="#ffffff"} --map of item type and it's color
+
             --optional, customize agenda dashboard view
             dashboardOrder = {"All TODO Items"} --Order of the dashboard page. Place group names defined in dashboard configuration.
             dashboard = {
@@ -84,6 +87,8 @@ Markdown time and task management plugin for NeoVim, inspired by org-agenda.
 | **DONE** | When a task is completed in time, it's type changes to DONE. |
 | **DUE** | When a task is completed after the given deadline, it's type changes to DUE. |
 | **CANCELLED** | When a TODO task is cancelled, it's type changes to CANCELLED. |
+
+- You can also use custom item types instead of **TODO** with customTodoTypes configuration.
 
 **Here are some example agenda items to understand their structure better:**
 ```md

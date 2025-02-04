@@ -125,7 +125,7 @@ local function getAgendaTasks(startTimeUnix, endTimeUnix)
 
                 --insert text to current date if the current date is close to task scheduled date by n days
                 --also if current date is not higher than the task deadline originally
-                if agendaItem.agendaItem[1] == "TODO" and days[currentDateStr] and (currentDayStart < parsedScheduled["unixTime"]) and
+                if common.isTodoItem(agendaItem.agendaItem[1]) and days[currentDateStr] and (currentDayStart < parsedScheduled["unixTime"]) and
                 (currentDayStart + ((common.config.remindScheduledInDays+1)*common.oneDay) > parsedScheduled["unixTime"]) then
 
                     table.insert(days[currentDateStr]["tasks"],
@@ -134,7 +134,7 @@ local function getAgendaTasks(startTimeUnix, endTimeUnix)
                 end
 
                 --show the task in today until its done, as it has a scheduled date but no deadline
-                if agendaItem.agendaItem[1]=="TODO" and days[currentDateStr] and (parsedScheduled["unixTime"] < currentDayStart) then
+                if common.isTodoItem(agendaItem.agendaItem[1]) and days[currentDateStr] and (parsedScheduled["unixTime"] < currentDayStart) then
                     table.insert(days[currentDateStr]["tasks"],
                         agendaItem.agendaItem[1].." "..agendaItem.agendaItem[2]..
                         " (SC: "..remainingOrPassedDays(currentDateStr, agendaItem.properties["Scheduled"])..")"
@@ -152,7 +152,7 @@ local function getAgendaTasks(startTimeUnix, endTimeUnix)
                 end
                 --insert text to current date if the current date is close to task deadline by n days
                 --also if current date is not higher than the task deadline originally
-                if agendaItem.agendaItem[1] == "TODO" and days[currentDateStr] and (currentDayStart < parsedDeadline["unixTime"]) and
+                if common.isTodoItem(agendaItem.agendaItem[1]) and days[currentDateStr] and (currentDayStart < parsedDeadline["unixTime"]) and
                 (currentDayStart + ((common.config.remindDeadlineInDays+1)*common.oneDay) > parsedDeadline["unixTime"]) then
 
                     table.insert(days[currentDateStr]["tasks"],
@@ -183,7 +183,7 @@ local function getAgendaTasks(startTimeUnix, endTimeUnix)
                         agendaItem.agendaItem[1].." "..agendaItem.agendaItem[2])
                 end
                 --insert text to current date if its between scheduled and deadline date
-                if agendaItem.agendaItem[1] == "TODO" and days[currentDateStr] and
+                if common.isTodoItem(agendaItem.agendaItem[1]) and days[currentDateStr] and
                 (currentDayStart < parsedDeadline["unixTime"]) and (parsedScheduled["unixTime"] < currentDayStart) and
                 currentDateStr ~= agendaItem.properties["Deadline"]:match("([0-9]+%-[0-9]+%-[0-9]+)") and
                 currentDateStr ~= agendaItem.properties["Scheduled"]:match("([0-9]+%-[0-9]+%-[0-9]+)") then
@@ -194,7 +194,7 @@ local function getAgendaTasks(startTimeUnix, endTimeUnix)
 
                 --insert text to current date if the current date is close to task scheduled date by n days
                 --also if current date is not higher than the task deadline originally
-                if agendaItem.agendaItem[1] == "TODO" and days[currentDateStr] and (currentDayStart < parsedScheduled["unixTime"]) and
+                if common.isTodoItem(agendaItem.agendaItem[1]) and days[currentDateStr] and (currentDayStart < parsedScheduled["unixTime"]) and
                 (currentDayStart + ((common.config.remindScheduledInDays+1)*common.oneDay) > parsedScheduled["unixTime"]) then
 
                     table.insert(days[currentDateStr]["tasks"],
@@ -205,7 +205,7 @@ local function getAgendaTasks(startTimeUnix, endTimeUnix)
             --If not Scheduled nor Deadline exists
             elseif (not agendaItem.properties["Scheduled"]) and (not agendaItem.properties["Deadline"]) then
                 --show the task in today if its not finished
-                if agendaItem.agendaItem[1]=="TODO" and days[currentDateStr] then
+                if common.isTodoItem(agendaItem.agendaItem[1]) and days[currentDateStr] then
                     table.insert(days[currentDateStr]["tasks"],
                         agendaItem.agendaItem[1].." "..agendaItem.agendaItem[2])
                 end
@@ -213,7 +213,7 @@ local function getAgendaTasks(startTimeUnix, endTimeUnix)
 
 
             --if task is a repeating task (repeat indicator on the scheduled), show the incoming days at the agenda until the deadline
-            if (agendaItem.agendaItem[1] == "TODO" or agendaItem.agendaItem[1] == "INFO") and parsedScheduled and parsedScheduled["nextUnixTime"] then
+            if (common.isTodoItem(agendaItem.agendaItem[1]) or agendaItem.agendaItem[1] == "INFO") and parsedScheduled and parsedScheduled["nextUnixTime"] then
                 for _, sortedDate in ipairs(sortedDates) do
                     local sdYear, sdMonth, sdDay = sortedDate:match("([0-9]+)-([0-9]+)-([0-9]+)")
                     local sdUnixTime = os.time({year=sdYear, month=sdMonth, day=sdDay})
@@ -242,7 +242,7 @@ local function getAgendaTasks(startTimeUnix, endTimeUnix)
             end
 
             --if task is a repeating task (repeat indicator on the deadline), show the incoming days at the agenda.
-            if (agendaItem.agendaItem[1] == "TODO" or agendaItem.agendaItem[1] == "INFO") and parsedDeadline and parsedDeadline["nextUnixTime"] then
+            if (common.isTodoItem(agendaItem.agendaItem[1]) or agendaItem.agendaItem[1] == "INFO") and parsedDeadline and parsedDeadline["nextUnixTime"] then
                 for _, sortedDate in ipairs(sortedDates) do
                     local sdYear, sdMonth, sdDay = sortedDate:match("([0-9]+)-([0-9]+)-([0-9]+)")
                     local sdUnixTime = os.time({year=sdYear, month=sdMonth, day=sdDay})
@@ -328,6 +328,11 @@ local function renderAgendaView()
     vim.cmd("highlight tag guifg=blue ctermfg=blue")
     vim.cmd("syntax match tag /\\#[a-zA-Z0-9]\\+/")
     vim.cmd("syntax match tag /:[a-zA-Z0-9:]\\+:/")
+
+    for customType, itsColor in pairs(common.config.customTodoTypes) do
+        vim.cmd("highlight "..customType.." guifg="..itsColor.." ctermfg="..itsColor)
+        vim.cmd("syntax match "..customType.." /"..customType.."/")
+    end
 
     local renderLines = {}
 

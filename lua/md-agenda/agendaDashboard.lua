@@ -359,6 +359,11 @@ local function renderAgendaDashboard()
     vim.cmd("syntax match tag /\\#[a-zA-Z0-9]\\+/")
     vim.cmd("syntax match tag /:[a-zA-Z0-9:]\\+:/")
 
+    for customType, itsColor in pairs(common.config.customTodoTypes) do
+        vim.cmd("highlight "..customType.." guifg="..itsColor.." ctermfg="..itsColor)
+        vim.cmd("syntax match done /"..customType.."/")
+    end
+
     local renderLines = {}
 
     local groupsAndItems = getGroupsAndItems()

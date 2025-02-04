@@ -14,17 +14,17 @@ local function checkTask(checkAction)
     local taskType = lineContent:match("^ *#+ ([A-Z]+): .*$")
     if taskType then
 
-        if taskType~="TODO" and taskType~="HABIT" and taskType~="DONE" and taskType~="DUE" and taskType~="INFO" and taskType~="CANCELLED" then
+        if (not common.isTodoItem(taskType)) and taskType~="HABIT" and taskType~="DONE" and taskType~="DUE" and taskType~="INFO" and taskType~="CANCELLED" then
             print("Not a task or has not a supported task type")
             return
         end
 
         ---CANCEL ACTION - START
-        if taskType == "TODO" and checkAction == "cancel" then
+        if common.isTodoItem(taskType) and checkAction == "cancel" then
             local newTaskStr = lineContent:gsub("TODO:","CANCELLED:")
             vim.api.nvim_buf_set_lines(0, lineNum-1, lineNum, false, { newTaskStr })
             return
-        elseif taskType ~= "TODO" and checkAction == "cancel" then
+        elseif (not common.isTodoItem(taskType)) and checkAction == "cancel" then
             print("Can't cancel tasks other than TODO.")
             return
         end
@@ -69,14 +69,14 @@ local function checkTask(checkAction)
         end
 
         ---------------------TODO/HABIT CASE---------------------
-        if taskType=="TODO" or taskType=="HABIT" then
+        if common.isTodoItem(taskType) or taskType=="HABIT" then
 
             local newTaskStr = lineContent
 
             --/IF ITS A NON-REPEATING TASK/--
             if (deadline and not parsedDeadline["nextUnixTime"]) or (scheduled and not parsedScheduled["nextUnixTime"]) or
             (not scheduled and not deadline) then
-                newTaskStr = newTaskStr:gsub("TODO:","DONE:"):gsub("HABIT:","DONE:")
+                newTaskStr = newTaskStr:gsub("# [A-Z]+:","# DONE:")
 
                 if deadline and parsedDeadline["unixTime"] < currentTime then
                     newTaskStr = newTaskStr:gsub("DONE:","DUE:")
@@ -94,12 +94,12 @@ local function checkTask(checkAction)
                 --if the repeat indicator on Scheduled property, and current day exceeds the deadline
                 if deadline and scheduled and parsedScheduled["nextUnixTime"] and
                 currentTime > parsedDeadline["unixTime"] then
-                    newTaskStr = newTaskStr:gsub("TODO:","DUE:"):gsub("HABIT:","DUE:")
+                    newTaskStr = newTaskStr:gsub("# [A-Z]+:","# DUE:")
                     return
                 --if the repeat indicator on Scheduled property, and the next scheduled time exceeds the deadline
                 elseif deadline and scheduled and parsedScheduled["nextUnixTime"] and
                 parsedScheduled["nextUnixTime"] > parsedDeadline["unixTime"] then
-                    newTaskStr = newTaskStr:gsub("TODO:","DONE:"):gsub("HABIT:","DONE:")
+                    newTaskStr = newTaskStr:gsub("# [A-Z]+:","# DONE:")
                     return
                 end
 

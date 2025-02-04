@@ -24,6 +24,20 @@ M.splitFoldmarkerString = function()
     return result
 end
 
+M.isTodoItem = function(itemType)
+    if itemType == "TODO" then
+        return true
+    else
+        for customTodoType, _ in pairs(M.config.customTodoTypes) do
+            if itemType == customTodoType then
+                return true
+            end
+        end
+    end
+
+    return false
+end
+
 
 local function isDirectory(path)
     local stat = vim.loop.fs_stat(path)
