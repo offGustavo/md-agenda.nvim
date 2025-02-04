@@ -19,6 +19,7 @@ Markdown time and task management plugin for NeoVim, inspired by org-agenda.
 
             --optional
             agendaViewPageItems=10 --How many days should be in one agenda view page? - default: 10
+            showNonTimeawareTasksToday=false --Show agenda items that has no scheduled time nor deadline in today.
 
             remindDeadlineInDays=30 --In how many days before the deadline, a reminder for the todo task should be shown today? - default: 30
             remindScheduledInDays=10 --In how many days before the scheduled time, a reminder for the todo task should be shown todau? - default: 10

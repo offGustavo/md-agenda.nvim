@@ -205,7 +205,8 @@ local function getAgendaTasks(startTimeUnix, endTimeUnix)
             --If not Scheduled nor Deadline exists
             elseif (not agendaItem.properties["Scheduled"]) and (not agendaItem.properties["Deadline"]) then
                 --show the task in today if its not finished
-                if common.isTodoItem(agendaItem.agendaItem[1]) and days[currentDateStr] then
+                if common.config.showNonTimeawareTasksToday and
+                common.isTodoItem(agendaItem.agendaItem[1]) and days[currentDateStr] then
                     table.insert(days[currentDateStr]["tasks"],
                         agendaItem.agendaItem[1].." "..agendaItem.agendaItem[2])
                 end

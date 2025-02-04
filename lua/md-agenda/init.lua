@@ -4,6 +4,8 @@ M.setup = function(opts)
     local common = require("md-agenda.common")
     common.config.agendaFiles = opts.agendaFiles or {}
     common.config.agendaViewPageItems = opts.agendaViewPageItems or 10
+    common.config.showNonTimeawareTasksToday = opts.showNonTimeawareTasksToday or false
+
     common.config.remindDeadlineInDays = opts.remindDeadlineInDays or 30
     common.config.remindScheduledInDays = opts.remindScheduledInDays or 10
 
