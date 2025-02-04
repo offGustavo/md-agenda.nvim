@@ -1,0 +1,383 @@
+local common = require("md-agenda.common")
+
+--Function to show times in agenda items only if they are different than 00:00
+local function showTimeStrInAgendaItem(timeStr)
+    local hourandminute = timeStr:match("([0-9]+:[0-9]+)")
+    if hourandminute ~= "00:00" then
+        return hourandminute.." | "
+
+    else return "" end
+end
+
+--Function to show remaining days or how many days passed from deadline or scheduled time.
+local function remainingOrPassedDays(fromDate ,targetDate)
+    local fYear, fMonth, fDay = fromDate:match("([0-9]+)-([0-9]+)-([0-9]+)")
+    local fUnixTime = os.time({year=fYear, month=fMonth, day=fDay})
+
+    local tYear, tMonth, tDay = targetDate:match("([0-9]+)-([0-9]+)-([0-9]+)")
+    local tUnixTime = os.time({year=tYear, month=tMonth, day=tDay})
+
+    local daysBetweenThem = math.floor((tUnixTime - fUnixTime) / common.oneDay)
+
+    --if the target date was in the past
+    if daysBetweenThem < 0 then
+        return -1*daysBetweenThem.."d ago"
+    --if the target time is in the future
+    else
+        return daysBetweenThem.."d left"
+    end
+end
+
+local function passesFilters(group,agendaItem)
+    if common.config.dashboard[group] then
+
+        for _,groupFilter in ipairs(common.config.dashboard[group]) do
+
+            --Check if the agenda item passes type filter.
+            local typeFilterPass=true
+            if groupFilter.type and #groupFilter.type > 0 then
+                local typeMatch = false
+                for _,filterItemType in ipairs(groupFilter.type) do
+                    if agendaItem.agendaItem[1] == filterItemType then
+                        typeMatch = true
+                        break
+                    end
+                end
+                typeFilterPass = typeMatch
+            end
+
+            --Check if the agenda item passes tag filter.
+            local tagFilterPass=true
+            if groupFilter.tags then
+                --AND filter passing
+                local tagFilterANDPass=true
+                if groupFilter.tags["AND"] and #groupFilter.tags["AND"] > 0 then
+                    tagFilterANDPass=false
+
+                    local tagANDmatchCount = 0
+                    for _,andTag in ipairs(groupFilter.tags["AND"]) do
+                        if agendaItem.agendaItem[2]:match("#"..andTag) or agendaItem.agendaItem[2]:match(":"..andTag..":") then
+                            tagANDmatchCount = tagANDmatchCount + 1
+                        end
+                    end
+
+                    if tagANDmatchCount == #groupFilter.tags["AND"] then
+                        tagFilterANDPass = true
+                    end
+                end
+
+                --OR filter passing
+                local tagFilterORPass=true
+                if groupFilter.tags["OR"] and #groupFilter.tags["OR"] > 0 then
+                    tagFilterORPass=false
+                    for _,orTag in ipairs(groupFilter.tags["OR"]) do
+                        if agendaItem.agendaItem[2]:match("#"..orTag) or agendaItem.agendaItem[2]:match(":"..orTag..":") then
+                            tagFilterORPass=true
+                            break
+                        end
+                    end
+
+                end
+
+                tagFilterPass = (tagFilterANDPass and tagFilterORPass)
+            end
+
+            --Check if the agenda item passes deadline filter.
+            local deadlineFilterPass=true
+            if groupFilter.deadline and #groupFilter.deadline > 0 then
+                if agendaItem.properties["Deadline"] then
+                    local currentTime = os.time()
+                    local currentTimeTable = os.date("*t",currentTime)
+                    local dyear, dmonth, dday = agendaItem.properties["Deadline"]:match("([0-9]+)%-([0-9]+)%-([0-9]+)")
+                    local deadlineUnix = os.time({year=dyear, month=dmonth, day=dday})
+
+                    if groupFilter.deadline == "none" then
+                        deadlineFilterPass = false
+
+                    elseif groupFilter.deadline == "today" then
+                        if currentTimeTable.year == dyear and currentTimeTable.month == dmonth and currentTimeTable.day == dday then
+                            deadlineFilterPass = true
+
+                        else deadlineFilterPass = false end
+
+                    elseif groupFilter.deadline == "nearFuture" then
+                        --insert text to current date if the current date is close to task deadline by n days
+                        --also if current date is not higher than the task deadline originally
+                        if (currentTime < deadlineUnix) and
+                        (currentTime + ((common.config.remindDeadlineInDays+1)*common.oneDay) > deadlineUnix) then
+                            deadlineFilterPass = true
+
+                        else deadlineFilterPass = false end
+
+                    elseif groupFilter.deadline == "past" then
+                        if deadlineUnix < currentTime then
+                            deadlineFilterPass = true
+
+                        else deadlineFilterPass = false end
+
+                    elseif groupFilter.deadline:match("^before-[0-9]+%-[0-9]+%-[0-9]+") then
+                        local fyear, fmonth, fday = groupFilter.deadline:match("([0-9]+)%-([0-9]+)%-([0-9]+)")
+
+                        if deadlineUnix < os.time({year=fyear, month=fmonth, day=fday}) then
+                            deadlineFilterPass = true
+
+                        else deadlineFilterPass = false end
+
+                    elseif groupFilter.deadline:match("^after-[0-9]+%-[0-9]+%-[0-9]+") then
+                        local fyear, fmonth, fday = groupFilter.deadline:match("([0-9]+)%-([0-9]+)%-([0-9]+)")
+
+                        if os.time({year=fyear, month=fmonth, day=fday}) < deadlineUnix then
+                            deadlineFilterPass = true
+
+                        else deadlineFilterPass = false end
+                    end
+                else
+                    if groupFilter.deadline ~= "none" then
+                        deadlineFilterPass=false
+                    end
+                end
+            end
+
+            --Check if the agenda item passes scheduled filter
+            local scheduledFilterPass=true
+            if groupFilter.scheduled and #groupFilter.scheduled > 0 then
+                if agendaItem.properties["Scheduled"] then
+                    local currentTime = os.time()
+                    local currentTimeTable = os.date("*t",currentTime)
+                    local syear, smonth, sday = agendaItem.properties["Scheduled"]:match("([0-9]+)%-([0-9]+)%-([0-9]+)")
+                    local scheduledUnix = os.time({year=syear, month=smonth, day=sday})
+
+                    if groupFilter.scheduled == "none" then
+                        scheduledFilterPass=false
+
+                    elseif groupFilter.scheduled == "today" then
+                        if currentTimeTable.year == syear and currentTimeTable.month == smonth and currentTimeTable.day == sday then
+                            scheduledFilterPass = true
+
+                        else scheduledFilterPass = false end
+
+                    elseif groupFilter.scheduled == "nearFuture" then
+                        if (currentTime < scheduledUnix) and
+                        (currentTime + ((common.config.remindScheduledInDays+1)*common.oneDay) > scheduledUnix) then
+                            scheduledFilterPass = true
+
+                        else scheduledFilterPass = false end
+
+                    elseif groupFilter.scheduled == "past" then
+                        if scheduledUnix < currentTime then
+                            scheduledFilterPass = true
+
+                        else scheduledFilterPass = false end
+
+                    elseif groupFilter.scheduled:match("^before-[0-9]+%-[0-9]+%-[0-9]+") then
+                        local fyear, fmonth, fday = groupFilter.deadline:match("([0-9]+)%-([0-9]+)%-([0-9]+)")
+
+                        if os.time({year=fyear, month=fmonth, day=fday}) < scheduledUnix then
+                            scheduledFilterPass = true
+
+                        else scheduledFilterPass = false end
+
+                    elseif groupFilter.scheduled:match("^after-[0-9]+%-[0-9]+%-[0-9]+") then
+                        local fyear, fmonth, fday = groupFilter.deadline:match("([0-9]+)%-([0-9]+)%-([0-9]+)")
+
+                        if scheduledUnix < os.time({year=fyear, month=fmonth, day=fday}) then
+                            scheduledFilterPass = true
+
+                        else scheduledFilterPass = false end
+                    end
+                else
+                    if groupFilter.scheduled ~= "none" then
+                        scheduledFilterPass=false
+                    end
+                end
+            end
+
+            --print(typeFilterPass, tagFilterPass, deadlineFilterPass, scheduledFilterPass)
+            return (typeFilterPass and tagFilterPass and deadlineFilterPass and scheduledFilterPass)
+        end
+    end
+
+    return false
+end
+
+local function getGroupsAndItems()
+    local agendaItems = common.getAgendaItems("")
+
+    local currentTime = os.time()
+    local currentDateStr = os.date("%Y-%m-%d", currentTime)
+
+    --{{groupName, {itemText1, itemText2}}}
+    local groupsAndItems = {}
+
+    if not common.config.dashboardOrder then
+        print("No items in dashboard order.")
+        return {}
+    end
+
+    --local noPass = 0
+
+    for _,groupName in ipairs(common.config.dashboardOrder) do
+        local groupAndItsItems = {groupName}
+
+        local groupItems = {}
+
+        for _, agendaItem in ipairs(agendaItems) do
+            --if not passesFilters(groupName, agendaItem) then noPass = noPass + 1 end
+            if passesFilters(groupName, agendaItem) then
+                local itemText = ""
+
+                ------------------
+                local parsedScheduled
+                if agendaItem.properties["Scheduled"] then
+                    parsedScheduled = common.parseTaskTime(agendaItem.properties["Scheduled"])
+
+                    if not parsedScheduled then print("for some reason, scheduled could not correctly parsed") return {} end
+                end
+
+                local parsedDeadline
+                if agendaItem.properties["Deadline"] then
+                    parsedDeadline = common.parseTaskTime(agendaItem.properties["Deadline"])
+
+                    if not parsedDeadline then print("for some reason, deadline could not correctly parsed") return {} end
+                end
+                ------------------
+
+                --If only Scheduled time exists
+                if agendaItem.properties["Scheduled"] and (not agendaItem.properties["Deadline"]) then
+
+                    --If the scheduled time is today
+                    local scheduledDate = agendaItem.properties["Scheduled"]:match("([0-9]+%-[0-9]+%-[0-9]+)")
+                    if currentDateStr == scheduledDate then
+                        --if its info, do not show "Scheduled:" text
+                        if agendaItem.agendaItem[1]=="INFO" then
+                            itemText = showTimeStrInAgendaItem(agendaItem.properties["Scheduled"])..
+                            agendaItem.agendaItem[1].." "..agendaItem.agendaItem[2]
+                        else
+                            itemText = "Scheduled: "..showTimeStrInAgendaItem(agendaItem.properties["Scheduled"])..
+                            agendaItem.agendaItem[1].." "..agendaItem.agendaItem[2]
+                        end
+
+                    --If the scheduled time is in the past or in the future
+                    elseif (parsedScheduled["unixTime"] < currentTime) or (currentTime < parsedScheduled["unixTime"]) then
+                        itemText = agendaItem.agendaItem[1].." "..agendaItem.agendaItem[2]..
+                        " (SC: "..remainingOrPassedDays(currentDateStr, agendaItem.properties["Scheduled"])..")"
+                    end
+
+                --If only Deadline exists
+                elseif (not agendaItem.properties["Scheduled"]) and agendaItem.properties["Deadline"] then
+                    --If the deadline is today
+                    local deadlineDate = agendaItem.properties["Deadline"]:match("([0-9]+%-[0-9]+%-[0-9]+)")
+                    if deadlineDate == currentDateStr then
+                        itemText = "Deadline: "..showTimeStrInAgendaItem(agendaItem.properties["Deadline"])..
+                        agendaItem.agendaItem[1].." "..agendaItem.agendaItem[2]
+
+                    --If the deadline is in the future or in the past
+                    elseif (currentTime < parsedDeadline["unixTime"]) or (parsedDeadline["unixTime"] < currentTime) then
+                        itemText = agendaItem.agendaItem[1].." "..agendaItem.agendaItem[2]..
+                        " (DL: "..remainingOrPassedDays(currentDateStr, agendaItem.properties["Deadline"])..")"
+                    end
+
+                --If both Scheduled and Deadline do exist
+                elseif agendaItem.properties["Scheduled"] and agendaItem.properties["Deadline"] then
+
+                    local scheduledDate=agendaItem.properties["Scheduled"]:match("([0-9]+%-[0-9]+%-[0-9]+)")
+                    local deadlineDate=agendaItem.properties["Deadline"]:match("([0-9]+%-[0-9]+%-[0-9]+)")
+                    --If the scheduled date is in the future
+                    if currentTime < parsedScheduled["unixTime"] then
+                        itemText = agendaItem.agendaItem[1].." "..agendaItem.agendaItem[2]..
+                        " (SC: "..remainingOrPassedDays(currentDateStr, agendaItem.properties["Scheduled"])..")"
+                    --If the scheduled date is today
+                    elseif currentDateStr == scheduledDate then
+                        itemText = "Scheduled: "..showTimeStrInAgendaItem(agendaItem.properties["Scheduled"])..
+                        agendaItem.agendaItem[1].." "..agendaItem.agendaItem[2]..
+                        " (DL: "..remainingOrPassedDays(scheduledDate, agendaItem.properties["Deadline"])..")"
+
+                    --If the deadline is in the future or is in the past
+                    elseif (currentTime < parsedDeadline["unixTime"]) or (parsedDeadline["unixTime"] < currentTime) then
+                        itemText = agendaItem.agendaItem[1].." "..agendaItem.agendaItem[2]..
+                        " (DL: "..remainingOrPassedDays(currentDateStr, agendaItem.properties["Deadline"])..")"
+                    --If the deadline is today
+                    elseif currentDateStr == deadlineDate then
+                        itemText = "Deadline: "..showTimeStrInAgendaItem(agendaItem.properties["Deadline"])..
+                        agendaItem.agendaItem[1].." "..agendaItem.agendaItem[2]
+                    end
+
+                --If not Scheduled nor Deadline exists
+                elseif (not agendaItem.properties["Scheduled"]) and (not agendaItem.properties["Deadline"]) then
+                    itemText = agendaItem.agendaItem[1].." "..agendaItem.agendaItem[2]
+                end
+
+                table.insert(groupItems, itemText)
+            end
+        end
+
+        table.insert(groupAndItsItems, groupItems)
+        table.insert(groupsAndItems, groupAndItsItems)
+    end
+
+    --print("No Pass:", noPass, "Item Count:", #agendaItems)
+
+    return groupsAndItems
+end
+
+local function renderAgendaDashboard()
+    vim.cmd("new")
+
+    local bufNumber = vim.api.nvim_get_current_buf()
+
+    vim.cmd("highlight date guifg=yellow ctermfg=yellow")
+    vim.cmd("syntax match date /^- .*$/")
+
+    vim.cmd("highlight todo guifg=cyan ctermfg=cyan")
+    vim.cmd("syntax match todo /TODO/")
+
+    vim.cmd("highlight habit guifg=blue ctermfg=blue")
+    vim.cmd("syntax match habit /HABIT/")
+
+    vim.cmd("highlight due guifg=grey ctermfg=grey")
+    vim.cmd("syntax match due /DUE/")
+
+    vim.cmd("highlight done guifg=green ctermfg=green")
+    vim.cmd("syntax match done /DONE/")
+
+    vim.cmd("highlight info guifg=lightgreen ctermfg=lightgreen")
+    vim.cmd("syntax match info /INFO/")
+    vim.cmd("syntax match info /Completion:/")
+    vim.cmd("syntax match info /Repeat:/")
+
+    vim.cmd("highlight deadline guifg=red ctermfg=red")
+    vim.cmd("syntax match deadline /Deadline:/")
+    vim.cmd("syntax match deadline /(DL: \\+.*)/")
+    vim.cmd("syntax match deadline /CANCELLED/")
+
+    vim.cmd("highlight scheduled guifg=cyan ctermfg=cyan")
+    vim.cmd("syntax match scheduled /Scheduled:/")
+    vim.cmd("syntax match scheduled /(SC: \\+.*)/")
+
+    vim.cmd("highlight tag guifg=blue ctermfg=blue")
+    vim.cmd("syntax match tag /\\#[a-zA-Z0-9]\\+/")
+    vim.cmd("syntax match tag /:[a-zA-Z0-9:]\\+:/")
+
+    local renderLines = {}
+
+    local groupsAndItems = getGroupsAndItems()
+
+    for _, group in ipairs(groupsAndItems) do
+        table.insert(renderLines, "- "..group[1])
+
+        for _, item in ipairs(group[2]) do
+            table.insert(renderLines, "  "..item)
+        end
+    end
+
+    vim.api.nvim_buf_set_lines(0, 0, -1, false, renderLines)
+
+    --disable modifying
+    vim.api.nvim_buf_set_option(bufNumber, "readonly", true)
+    vim.api.nvim_buf_set_option(bufNumber, "modifiable", false)
+    vim.api.nvim_buf_set_option(bufNumber, "modified", false)
+end
+
+vim.api.nvim_create_user_command('AgendaDashboard', function()
+    renderAgendaDashboard()
+end, {})

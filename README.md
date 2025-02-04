@@ -19,10 +19,28 @@ Markdown time and task management plugin for NeoVim, inspired by org-agenda.
 
             --optional
             agendaViewPageItems=10 --How many days should be in one agenda view page? - default: 10
-            remindDeadlineInDays=30 --In how many days before the deadline, a reminder for the task should be shown today - default: 30
+
+            remindDeadlineInDays=30 --In how many days before the deadline, a reminder for the todo task should be shown today? - default: 30
+            remindScheduledInDays=10 --In how many days before the scheduled time, a reminder for the todo task should be shown todau? - default: 10
             habitViewPastItems=24 --How many past days should be in the habit view? - default: 24
             habitViewFutureItems=3 --How many future days should be in the habit view? -default: 3
             foldmarker="{{{,}}}" --For folding logbook entries -default: {{{,}}}
+
+            --optional, customize agenda dashboard view
+            dashboardOrder = {"All TODO Items"} --Order of the dashboard page. Place group names defined in dashboard configuration.
+            dashboard = {
+                ["All TODO Items"] = {
+                    {
+                        type={"TODO"}, --TODO, INFO etc. Gets the items that matches one of the given types. Ignore if its empty
+                        tags={}, --{AND={"tag1", "tag2"}, OR={"tag1", "tag2"}} A list of tags to filter. Ignore if its empty.
+                        deadline="", --"none" (no deadline property), "today", "past", "nearFuture", "before-yyyy-mm-dd", "after-yyyy-mm-dd".
+                        scheduled="", --"none", "today", "past", "nearFuture", "before-yyyy-mm-dd", "after-yyyy-mm-dd". Ignored if empty.
+                    },
+                    --{...},
+                    --...
+                },
+                --["Other Group"] = {...}
+            }
         })
 
         --optional: set keymaps for commands
@@ -30,6 +48,7 @@ Markdown time and task management plugin for NeoVim, inspired by org-agenda.
         vim.keymap.set('n', '<A-c>', ":CancelTask<CR>")
 
         vim.keymap.set('n', '<A-h>', ":HabitView<CR>")
+        vim.keymap.set('n', '<A-o>', ":AgendaDashboard<CR>")
         vim.keymap.set('n', '<A-a>', ":AgendaView<CR>")
         vim.keymap.set('n', '<A-Left>', ":PrevAgendaPage<CR>")
         vim.keymap.set('n', '<A-Right>', ":NextAgendaPage<CR>")
@@ -178,6 +197,13 @@ A Progress indicator is splitted into two parts. The **progress (x)** and the **
 | Has **Logbook** items | It is shown in the repeat dates. |
 
 To show **reminders about special days like "April Fools' Day,"** you can add the [ready-made files](https://github.com/zenarvus/md-agenda.nvim/tree/main/specialDays) to your agendaFiles configuration, or you can create one yourself.
+
+## Agenda Dashboard
+For grouping and displaying agenda items by filters in one page buffer.
+
+| Command | Description |
+| - | - |
+| `:AgendaDashboard` | Open the agenda dashboard. |
 
 ## Habit View
 | Command | Description |

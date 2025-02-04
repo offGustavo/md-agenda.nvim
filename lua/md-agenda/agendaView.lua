@@ -123,6 +123,16 @@ local function getAgendaTasks(startTimeUnix, endTimeUnix)
                     end
                 end
 
+                --insert text to current date if the current date is close to task scheduled date by n days
+                --also if current date is not higher than the task deadline originally
+                if agendaItem.agendaItem[1] == "TODO" and days[currentDateStr] and (currentDayStart < parsedScheduled["unixTime"]) and
+                (currentDayStart + ((common.config.remindScheduledInDays+1)*common.oneDay) > parsedScheduled["unixTime"]) then
+
+                    table.insert(days[currentDateStr]["tasks"],
+                        agendaItem.agendaItem[1].." "..agendaItem.agendaItem[2]..
+                        " (SC: "..remainingOrPassedDays(currentDateStr, agendaItem.properties["Scheduled"])..")")
+                end
+
                 --show the task in today until its done, as it has a scheduled date but no deadline
                 if agendaItem.agendaItem[1]=="TODO" and days[currentDateStr] and (parsedScheduled["unixTime"] < currentDayStart) then
                     table.insert(days[currentDateStr]["tasks"],
@@ -180,6 +190,16 @@ local function getAgendaTasks(startTimeUnix, endTimeUnix)
                     table.insert(days[currentDateStr]["tasks"],
                         agendaItem.agendaItem[1].." "..agendaItem.agendaItem[2]..
                         " (DL: "..remainingOrPassedDays(currentDateStr, agendaItem.properties["Deadline"])..")")
+                end
+
+                --insert text to current date if the current date is close to task scheduled date by n days
+                --also if current date is not higher than the task deadline originally
+                if agendaItem.agendaItem[1] == "TODO" and days[currentDateStr] and (currentDayStart < parsedScheduled["unixTime"]) and
+                (currentDayStart + ((common.config.remindScheduledInDays+1)*common.oneDay) > parsedScheduled["unixTime"]) then
+
+                    table.insert(days[currentDateStr]["tasks"],
+                        agendaItem.agendaItem[1].." "..agendaItem.agendaItem[2]..
+                        " (SC: "..remainingOrPassedDays(currentDateStr, agendaItem.properties["Scheduled"])..")")
                 end
 
             --If not Scheduled nor Deadline exists
