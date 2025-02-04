@@ -192,8 +192,9 @@ local function passesFilters(group,agendaItem)
                 end
             end
 
-            --print(typeFilterPass, tagFilterPass, deadlineFilterPass, scheduledFilterPass)
-            return (typeFilterPass and tagFilterPass and deadlineFilterPass and scheduledFilterPass)
+            if (typeFilterPass and tagFilterPass and deadlineFilterPass and scheduledFilterPass) == true then
+                return (typeFilterPass and tagFilterPass and deadlineFilterPass and scheduledFilterPass)
+            end
         end
     end
 

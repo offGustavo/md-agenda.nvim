@@ -11,6 +11,8 @@ M.setup = function(opts)
     common.config.habitViewFutureItems = opts.habitViewFutureItems or 3
     common.config.foldmarker = opts.folmarker or "{{{,}}}"
 
+    common.config.customTodoTypes = opts.customTodoTypes or {}
+
     --Custom item type support:
     -- {
     -- customTodoTypes={"SIGMA","CHUD"}

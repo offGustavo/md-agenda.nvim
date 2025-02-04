@@ -74,7 +74,7 @@ Markdown time and task management plugin for NeoVim, inspired by org-agenda.
 
 ## Agenda Item Structure
 
-**This plugin only considers markdown headers starting with these strings as agenda items:**
+**By default, this plugin only considers markdown headers starting with these strings as agenda items:**
 
 | Type | Description |
 | - | - |
