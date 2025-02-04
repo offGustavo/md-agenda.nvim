@@ -1,5 +1,7 @@
 local common = require("md-agenda.common")
 
+local vim = vim
+
 --Function to show times in agenda items only if they are different than 00:00
 local function showTimeStrInAgendaItem(timeStr)
     local hourandminute = timeStr:match("([0-9]+:[0-9]+)")
@@ -326,36 +328,40 @@ local function renderAgendaDashboard()
 
     local bufNumber = vim.api.nvim_get_current_buf()
 
-    vim.cmd("highlight date guifg=yellow ctermfg=yellow")
+    vim.cmd("highlight date guifg="..common.config.titleColor.." ctermfg="..common.config.titleColor)
     vim.cmd("syntax match date /^- .*$/")
 
-    vim.cmd("highlight todo guifg=cyan ctermfg=cyan")
+    vim.cmd("highlight todo guifg="..common.config.todoTypeColor.." ctermfg="..common.config.todoTypeColor)
     vim.cmd("syntax match todo /TODO/")
 
-    vim.cmd("highlight habit guifg=blue ctermfg=blue")
+    vim.cmd("highlight habit guifg="..common.config.habitTypeColor.." ctermfg="..common.config.habitTypeColor)
     vim.cmd("syntax match habit /HABIT/")
 
-    vim.cmd("highlight due guifg=grey ctermfg=grey")
+    vim.cmd("highlight due guifg="..common.config.dueTypeColor.." ctermfg="..common.config.dueTypeColor)
     vim.cmd("syntax match due /DUE/")
 
-    vim.cmd("highlight done guifg=green ctermfg=green")
+    vim.cmd("highlight done guifg="..common.config.doneTypeColor.." ctermfg="..common.config.doneTypeColor)
     vim.cmd("syntax match done /DONE/")
 
-    vim.cmd("highlight info guifg=lightgreen ctermfg=lightgreen")
+    vim.cmd("highlight info guifg="..common.config.infoTypeColor.." ctermfg="..common.config.infoTypeColor)
     vim.cmd("syntax match info /INFO/")
-    vim.cmd("syntax match info /Completion:/")
-    vim.cmd("syntax match info /Repeat:/")
 
-    vim.cmd("highlight deadline guifg=red ctermfg=red")
+    vim.cmd("highlight completionColor guifg="..common.config.completionColor.." ctermfg="..common.config.completionColor)
+    vim.cmd("syntax match completionColor /Completion:/")
+    vim.cmd("syntax match completionColor /Repeat:/")
+
+    vim.cmd("highlight deadline guifg="..common.config.deadlineTimeColor.." ctermfg="..common.config.deadlineTimeColor)
     vim.cmd("syntax match deadline /Deadline:/")
     vim.cmd("syntax match deadline /(DL: \\+.*)/")
-    vim.cmd("syntax match deadline /CANCELLED/")
 
-    vim.cmd("highlight scheduled guifg=cyan ctermfg=cyan")
+    vim.cmd("highlight cancelledTask guifg="..common.config.cancelledTypeColor.." ctermfg="..common.config.cancelledTypeColor)
+    vim.cmd("syntax match cancelledTask /CANCELLED/")
+
+    vim.cmd("highlight scheduled guifg="..common.config.scheduledTimeColor.." ctermfg="..common.config.scheduledTimeColor)
     vim.cmd("syntax match scheduled /Scheduled:/")
     vim.cmd("syntax match scheduled /(SC: \\+.*)/")
 
-    vim.cmd("highlight tag guifg=blue ctermfg=blue")
+    vim.cmd("highlight tag guifg="..common.config.tagColor.." ctermfg="..common.config.tagColor)
     vim.cmd("syntax match tag /\\#[a-zA-Z0-9]\\+/")
     vim.cmd("syntax match tag /:[a-zA-Z0-9:]\\+:/")
 

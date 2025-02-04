@@ -20,9 +20,8 @@ Markdown time and task management plugin for NeoVim, inspired by org-agenda.
             --optional
             agendaViewPageItems=10 --How many days should be in one agenda view page? - default: 10
             showNonTimeawareTasksToday=false --Show agenda items that has no scheduled time nor deadline in today.
-
             remindDeadlineInDays=30 --In how many days before the deadline, a reminder for the todo task should be shown today? - default: 30
-            remindScheduledInDays=10 --In how many days before the scheduled time, a reminder for the todo task should be shown todau? - default: 10
+            remindScheduledInDays=10 --In how many days before the scheduled time, a reminder for the todo task should be shown today? - default: 10
             habitViewPastItems=24 --How many past days should be in the habit view? - default: 24
             habitViewFutureItems=3 --How many future days should be in the habit view? -default: 3
             foldmarker="{{{,}}}" --For folding logbook entries -default: {{{,}}}
@@ -45,6 +44,29 @@ Markdown time and task management plugin for NeoVim, inspired by org-agenda.
                 },
                 --["Other Group"] = {...}
             }
+
+            --optional, change agenda colors.
+            tagColor = "blue"
+            titleColor = "yellow"
+
+            todoTypeColor = "cyan"
+            habitTypeColor = "cyan"
+            infoTypeColor = "lightgreen"
+            dueTypeColor = "red"
+            doneTypeColor = "green"
+            cancelledTypeColor = "red"
+
+            completionColor = "lightgreen"
+            scheduledTimeColor = "cyan"
+            deadlineTimeColor = "red"
+
+            habitScheduledColor = "yellow"
+            habitDoneColor = "green"
+            habitProgressColor = "lightgreen"
+            habitPastScheduledColor = "darkyellow"
+            habitFreeTimeColor = "blue"
+            habitNotDoneColor = "red"
+            habitDeadlineColor = "gray"
         })
 
         --optional: set keymaps for commands

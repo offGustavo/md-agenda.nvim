@@ -119,31 +119,31 @@ local function renderHabitView()
 
     local bufNumber = vim.api.nvim_get_current_buf()
 
-    vim.cmd("highlight progressmade guibg=lightgreen ctermbg=lightgreen guifg=lightgreen ctermfg=lightgreen")
+    vim.cmd("highlight progressmade guibg="..common.config.habitProgressColor.." ctermbg="..common.config.habitProgressColor.." guifg="..common.config.habitProgressColor.." ctermfg="..common.config.habitProgressColor)
     vim.cmd("syntax match progressmade /¤/")
 
-    vim.cmd("highlight mustdone guibg=yellow ctermbg=yellow guifg=yellow ctermfg=yellow")
+    vim.cmd("highlight mustdone guibg="..common.config.habitScheduledColor.." ctermbg="..common.config.habitScheduledColor.." guifg="..common.config.habitScheduledColor.." ctermfg="..common.config.habitScheduledColor)
     vim.cmd("syntax match mustdone /♁/")
 
-    vim.cmd("highlight pastscheduled guibg=darkyellow ctermbg=darkyellow guifg=darkyellow ctermfg=darkyellow")
+    vim.cmd("highlight pastscheduled guibg="..common.config.habitPastScheduledColor.." ctermbg="..common.config.habitPastScheduledColor.." guifg="..common.config.habitPastScheduledColor.." ctermfg="..common.config.habitPastScheduledColor)
     vim.cmd("syntax match pastscheduled /⚨/")
 
-    vim.cmd("highlight habitdone guibg=green ctermbg=green guifg=green ctermfg=green")
+    vim.cmd("highlight habitdone guibg="..common.config.habitDoneColor.." ctermbg="..common.config.habitDoneColor.." guifg="..common.config.habitDoneColor.." ctermfg="..common.config.habitDoneColor)
     vim.cmd("syntax match habitdone /⊹/")
 
-    vim.cmd("highlight notdone guibg=red ctermbg=red guifg=red ctermfg=red")
+    vim.cmd("highlight notdone guibg="..common.config.habitNotDoneColor.." ctermbg="..common.config.habitNotDoneColor.." guifg="..common.config.habitNotDoneColor.." ctermfg="..common.config.habitNotDoneColor)
     vim.cmd("syntax match notdone /ø/")
 
-    vim.cmd("highlight end guibg=gray ctermbg=gray guifg=gray ctermfg=gray")
+    vim.cmd("highlight end guibg="..common.config.habitDeadlineColor.." ctermbg="..common.config.habitDeadlineColor.." guifg="..common.config.habitDeadlineColor.." ctermfg="..common.config.habitDeadlineColor)
     vim.cmd("syntax match end /♆/")
 
-    vim.cmd("highlight noneed guibg=blue ctermbg=blue guifg=blue ctermfg=blue")
+    vim.cmd("highlight noneed guibg="..common.config.habitFreeTimeColor.." ctermbg="..common.config.habitFreeTimeColor.." guifg="..common.config.habitFreeTimeColor.." ctermfg="..common.config.habitFreeTimeColor)
     vim.cmd("syntax match noneed /⍣/")
 
     vim.cmd("highlight today guibg=brown ctermbg=brown guifg=brown ctermfg=brown")
     vim.cmd("syntax match today /♅/")
 
-    vim.cmd("highlight tag guifg=blue ctermfg=blue")
+    vim.cmd("highlight tag guifg="..common.config.tagColor.." ctermfg="..common.config.tagColor)
     vim.cmd("syntax match tag /\\#[a-zA-Z0-9]\\+/")
     vim.cmd("syntax match tag /:[a-zA-Z0-9:]\\+:/")
 

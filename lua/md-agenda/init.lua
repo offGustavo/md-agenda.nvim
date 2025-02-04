@@ -37,6 +37,29 @@ M.setup = function(opts)
         },
     }
 
+    common.config.tagColor = opts.tagColor or "blue"
+    common.config.titleColor = opts.titleColor or "yellow"
+
+    common.config.todoTypeColor = opts.todoTypeColor or "cyan"
+    common.config.habitTypeColor = opts.habitTypeColor or "cyan"
+    common.config.infoTypeColor = opts.infoTypeColor or "lightgreen"
+    common.config.dueTypeColor = opts.dueTypeColor or "red"
+    common.config.doneTypeColor = opts.doneTypeColor or "green"
+    common.config.cancelledTypeColor = opts.cancelledTypeColor or "red"
+
+    common.config.completionColor = opts.completionColor or "lightgreen"
+
+    common.config.scheduledTimeColor = opts.scheduledTimeColor or "cyan"
+    common.config.deadlineTimeColor = opts.deadlineTimeColor or "red"
+
+    common.config.habitScheduledColor = opts.habitScheduledColor or "yellow"
+    common.config.habitDoneColor = opts.habitDoneColor or "green"
+    common.config.habitProgressColor = opts.habitProgressColor or "lightgreen"
+    common.config.habitPastScheduledColor = opts.habitPastScheduledColor or "darkyellow"
+    common.config.habitFreeTimeColor = opts.habitFreeTimeColor or "blue"
+    common.config.habitNotDoneColor = opts.habitNotDoneColor or "red"
+    common.config.habitDeadlineColor = opts.habitDeadlineColor or "gray"
+
     vim.api.nvim_create_autocmd("FileType", {
         pattern = "markdown",
         callback = function()
