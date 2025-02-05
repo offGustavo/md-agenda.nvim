@@ -1,14 +1,15 @@
+local config = require("md-agenda.config")
+
 --functions and variables that are used in multiple files
-M = {}
+local common = {}
 
 local vim = vim
 
 -----------VARS--------------
-M.oneDay = 24*60*60 --one day in seconds
-M.config = {}
+common.oneDay = 24*60*60 --one day in seconds
 
 ------------GET MAP ITEM COUNT--------------
-M.getMapItemCount = function(map)
+common.getMapItemCount = function(map)
     local count = 0
     for _, _ in pairs(map) do
         count = count + 1
@@ -16,19 +17,19 @@ M.getMapItemCount = function(map)
     return count
 end
 
-M.splitFoldmarkerString = function()
+common.splitFoldmarkerString = function()
     local result = {}
-    for item in string.gmatch(M.config.foldmarker, "([^,]+)") do
+    for item in string.gmatch(config.config.foldmarker, "([^,]+)") do
         table.insert(result, item)
     end
     return result
 end
 
-M.isTodoItem = function(itemType)
+common.isTodoItem = function(itemType)
     if itemType == "TODO" then
         return true
     else
-        for customTodoType, _ in pairs(M.config.customTodoTypes) do
+        for customTodoType, _ in pairs(config.config.customTodoTypes) do
             if itemType == customTodoType then
                 return true
             end
@@ -44,9 +45,9 @@ local function isDirectory(path)
     return stat and stat.type == 'directory'
 end
 
-M.listAgendaFiles = function()
+common.listAgendaFiles = function()
     local agendaFiles = {}
-    for _,agendaFilePath in ipairs(M.config.agendaFiles) do
+    for _,agendaFilePath in ipairs(config.config.agendaFiles) do
 
         agendaFilePath = vim.fn.expand(agendaFilePath)
 
@@ -77,33 +78,33 @@ local function getWeekdayOccurenceCountInMonthUntilGivenDate(startPoint, unixTim
         local occurrence = firstDayOfMonth
         while os.date("*t", occurrence).wday ~= timeTable.wday  do
 
-            occurrence = occurrence + M.oneDay
+            occurrence = occurrence + common.oneDay
         end
 
         --After the first same weekday found, increase it by one week until it has the same day with given unixTime
         while occurrence <= unixTime do
             occurrenceCount = occurrenceCount + 1
 
-            occurrence = occurrence + M.oneDay * 7
+            occurrence = occurrence + common.oneDay * 7
         end
 
     --Start from the end
     elseif startPoint == -1 then
         --To get the last day of this month, get the next month's first day, then subtract one day, finally, convert the new result to the table.
-        local lastDayOfMonth = os.time(os.date("*t", os.time({year = timeTable.year, month = timeTable.month+1, day=1}) - M.oneDay))
+        local lastDayOfMonth = os.time(os.date("*t", os.time({year = timeTable.year, month = timeTable.month+1, day=1}) - common.oneDay))
 
         --Find the last same weekday of the same month
         local occurrence = lastDayOfMonth
         while os.date("*t", occurrence).wday ~= timeTable.wday do
 
-            occurrence = occurrence - M.oneDay
+            occurrence = occurrence - common.oneDay
         end
 
         --After the last same weekday found, decrease it by one week until it has the same day with given unixTime
         while unixTime <= occurrence do
             occurrenceCount = occurrenceCount + 1
 
-            occurrence = occurrence - M.oneDay * 7
+            occurrence = occurrence - common.oneDay * 7
         end
     end
 
@@ -111,7 +112,7 @@ local function getWeekdayOccurenceCountInMonthUntilGivenDate(startPoint, unixTim
 --\}}}
 end
 
-M.parseTaskTime = function(timeString)
+common.parseTaskTime = function(timeString)
 --\{{{
     --time string's format: 2025-12-30 18:05 +1d (the last one is the repeat interval and is optional)
     local taskTimeMap = {}
@@ -215,7 +216,7 @@ M.parseTaskTime = function(timeString)
                 while os.date("*t", taskTimeMap["nextUnixTime"]).wday ~= taskWeekday and
                 occurrenceCount ~= getWeekdayOccurenceCountInMonthUntilGivenDate(1, taskTimeMap["nextUnixTime"]) do
 
-                    taskTimeMap["nextUnixTime"] = taskTimeMap["nextUnixTime"] + M.oneDay
+                    taskTimeMap["nextUnixTime"] = taskTimeMap["nextUnixTime"] + common.oneDay
                 end
 
             elseif repeatInterval=="z" then
@@ -227,7 +228,7 @@ M.parseTaskTime = function(timeString)
                 while os.date("*t", taskTimeMap["nextUnixTime"]).wday ~= taskWeekday and
                 occurrenceCount ~= getWeekdayOccurenceCountInMonthUntilGivenDate(-1, taskTimeMap["nextUnixTime"]) do
 
-                    taskTimeMap["nextUnixTime"] = taskTimeMap["nextUnixTime"] + M.oneDay
+                    taskTimeMap["nextUnixTime"] = taskTimeMap["nextUnixTime"] + common.oneDay
                 end
             end
 
@@ -240,7 +241,7 @@ M.parseTaskTime = function(timeString)
         if repeatType=="++" and taskTimeMap["nextUnixTime"] < currentUnixTime then
                 local taskDateWithDetails = os.date("*t", taskUnixTime)
                 while true do
-                    local nextUnixTime = taskTimeMap["nextUnixTime"] + M.oneDay
+                    local nextUnixTime = taskTimeMap["nextUnixTime"] + common.oneDay
                     taskTimeMap["nextUnixTime"] = nextUnixTime
 
                     if currentUnixTime < taskTimeMap["nextUnixTime"] then
@@ -290,7 +291,7 @@ end
 --Checks if the given date is in the range of the given task time string
 --wantedDateStr's format: 2000-12-30
 --if returned value is false, it means that date is a free time
-M.IsDateInRangeOfGivenRepeatingTimeStr = function(repeatingTimeStr, wantedDateStr)
+common.IsDateInRangeOfGivenRepeatingTimeStr = function(repeatingTimeStr, wantedDateStr)
     local ryear,rmonth,rday=repeatingTimeStr:match("([0-9]+)-([0-9]+)-([0-9]+)")
 
     local repeatingTimeTable = {
@@ -357,8 +358,8 @@ M.IsDateInRangeOfGivenRepeatingTimeStr = function(repeatingTimeStr, wantedDateSt
 
         elseif repeatInterval == "d" then
             --days since epoch
-            local repeatingTimeDSE = math.floor(repeatingTimeUnix / M.oneDay)
-            local wantedDateDSE = math.floor(wantedDateUnix / M.oneDay)
+            local repeatingTimeDSE = math.floor(repeatingTimeUnix / common.oneDay)
+            local wantedDateDSE = math.floor(wantedDateUnix / common.oneDay)
 
             --this formula means that we can eventually arrive to wantedDate from repeatingTime if we add or subtract repeatNum 
             if (wantedDateDSE - repeatingTimeDSE) % repeatNum == 0 then
@@ -394,7 +395,7 @@ end
 
 -------------GET TASK PROPERTIES-------------
 -- its not just for current buffer but all files. So we use content lines array instead
-M.getTaskProperties = function(ContentLinesArr, taskLineNum, withLineNum)
+common.getTaskProperties = function(ContentLinesArr, taskLineNum, withLineNum)
     --{key={propertyLineNum, value}, ...} or {key=value, ...}
     local properities = {}
 
@@ -440,11 +441,11 @@ end
 
 -------------ADD A PROPERTY TO A TASK IN THE CURRENT BUFFER-----------------
 --add a new property to the task or update the existing one
-M.addPropertyToBufTask = function(taskLineNum, key, value)
+common.addPropertyToBufTask = function(taskLineNum, key, value)
     local currentBuf = vim.api.nvim_get_current_buf()
     local currentBufLines = vim.api.nvim_buf_get_lines(currentBuf, 0, -1, true)
 
-    local taskProperties = M.getTaskProperties(currentBufLines, taskLineNum, true)
+    local taskProperties = common.getTaskProperties(currentBufLines, taskLineNum, true)
 
     --if it exists, update
     if taskProperties[key] then
@@ -461,7 +462,7 @@ M.addPropertyToBufTask = function(taskLineNum, key, value)
 end
 
 --------------SAVE TO THE LOGBOOK---------------
-M.saveToLogbook = function(taskLineNum, logStr)
+common.saveToLogbook = function(taskLineNum, logStr)
     local lineNum = taskLineNum+1
 
     local logbookExists = false
@@ -496,14 +497,14 @@ M.saveToLogbook = function(taskLineNum, logStr)
     --if logbook does not found, create one and insert the logStr
     else
         --insert below properties
-        local properties = M.getTaskProperties(currentBufLines, taskLineNum)
-        local propertyCount = M.getMapItemCount(properties)
+        local properties = common.getTaskProperties(currentBufLines, taskLineNum)
+        local propertyCount = common.getMapItemCount(properties)
 
         local newLines = {}
-        table.insert(newLines, "<details logbook><!--"..M.splitFoldmarkerString()[1].."-->")
+        table.insert(newLines, "<details logbook><!--"..common.splitFoldmarkerString()[1].."-->")
         table.insert(newLines, "")
         table.insert(newLines, "  "..logStr)
-        table.insert(newLines, "<!--"..M.splitFoldmarkerString()[2].."--></details>")
+        table.insert(newLines, "<!--"..common.splitFoldmarkerString()[2].."--></details>")
 
         for i, newLine in ipairs(newLines) do
             table.insert(currentBufLines, taskLineNum + propertyCount + i, newLine)
@@ -514,7 +515,7 @@ M.saveToLogbook = function(taskLineNum, logStr)
 end
 
 ---------------GET LOGBOOK ENTRIES---------------
-M.getLogbookEntries = function(ContentLinesArr, taskLineNum)
+common.getLogbookEntries = function(ContentLinesArr, taskLineNum)
     --{{status, time, progress}, ...}
     local entries = {}
 
@@ -570,7 +571,7 @@ end
 ----------------LIST ALL AGENDA ITEMS----------------
 
 --detailLevel: minimal or anything
-M.getAgendaItems = function(detailLevel)
+common.getAgendaItems = function(detailLevel)
     --[[{
         {
             metadata={filePath, lineNumber}
@@ -583,7 +584,7 @@ M.getAgendaItems = function(detailLevel)
     }--]]
     local agendaItems = {}
 
-    for _,agendaFilePath in ipairs(M.listAgendaFiles()) do
+    for _,agendaFilePath in ipairs(common.listAgendaFiles()) do
         local file_content = vim.fn.readfile(agendaFilePath)
         if file_content then
             local lineNumber = 0
@@ -600,12 +601,12 @@ M.getAgendaItems = function(detailLevel)
                     agendaItem.agendaItem ={taskType, title, line}
 
                     if detailLevel ~= "minimal" then
-                        agendaItem.properties = M.getTaskProperties(file_content, lineNumber)
+                        agendaItem.properties = common.getTaskProperties(file_content, lineNumber)
 
                         --Try to get the logbook entries only if the agenda item has a repeat indicator.
                         if (agendaItem.properties["Scheduled"] and agendaItem.properties["Scheduled"]:match(" [%.%+]+[0-9]+[a-z]")) or
                         (agendaItem.properties["Deadline"] and agendaItem.properties["Deadline"]:match(" [%.%+]+[0-9]+[a-z]")) then
-                            agendaItem.logbookItems = M.getLogbookEntries(file_content, lineNumber)
+                            agendaItem.logbookItems = common.getLogbookEntries(file_content, lineNumber)
                         end
                     end
 
@@ -618,4 +619,4 @@ M.getAgendaItems = function(detailLevel)
     return agendaItems
 end
 
-return M
+return common

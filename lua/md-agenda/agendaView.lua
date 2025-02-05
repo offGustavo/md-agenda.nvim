@@ -1,3 +1,5 @@
+local config = require("md-agenda.config")
+
 local common = require("md-agenda.common")
 
 local vim = vim
@@ -126,7 +128,7 @@ local function getAgendaTasks(startTimeUnix, endTimeUnix)
                 --insert text to current date if the current date is close to task scheduled date by n days
                 --also if current date is not higher than the task deadline originally
                 if common.isTodoItem(agendaItem.agendaItem[1]) and days[currentDateStr] and (currentDayStart < parsedScheduled["unixTime"]) and
-                (currentDayStart + ((common.config.remindScheduledInDays+1)*common.oneDay) > parsedScheduled["unixTime"]) then
+                (currentDayStart + ((config.config.remindScheduledInDays+1)*common.oneDay) > parsedScheduled["unixTime"]) then
 
                     table.insert(days[currentDateStr]["tasks"],
                         agendaItem.agendaItem[1].." "..agendaItem.agendaItem[2]..
@@ -153,7 +155,7 @@ local function getAgendaTasks(startTimeUnix, endTimeUnix)
                 --insert text to current date if the current date is close to task deadline by n days
                 --also if current date is not higher than the task deadline originally
                 if common.isTodoItem(agendaItem.agendaItem[1]) and days[currentDateStr] and (currentDayStart < parsedDeadline["unixTime"]) and
-                (currentDayStart + ((common.config.remindDeadlineInDays+1)*common.oneDay) > parsedDeadline["unixTime"]) then
+                (currentDayStart + ((config.config.remindDeadlineInDays+1)*common.oneDay) > parsedDeadline["unixTime"]) then
 
                     table.insert(days[currentDateStr]["tasks"],
                         agendaItem.agendaItem[1].." "..agendaItem.agendaItem[2]..
@@ -195,7 +197,7 @@ local function getAgendaTasks(startTimeUnix, endTimeUnix)
                 --insert text to current date if the current date is close to task scheduled date by n days
                 --also if current date is not higher than the task deadline originally
                 if common.isTodoItem(agendaItem.agendaItem[1]) and days[currentDateStr] and (currentDayStart < parsedScheduled["unixTime"]) and
-                (currentDayStart + ((common.config.remindScheduledInDays+1)*common.oneDay) > parsedScheduled["unixTime"]) then
+                (currentDayStart + ((config.config.remindScheduledInDays+1)*common.oneDay) > parsedScheduled["unixTime"]) then
 
                     table.insert(days[currentDateStr]["tasks"],
                         agendaItem.agendaItem[1].." "..agendaItem.agendaItem[2]..
@@ -205,7 +207,7 @@ local function getAgendaTasks(startTimeUnix, endTimeUnix)
             --If not Scheduled nor Deadline exists
             elseif (not agendaItem.properties["Scheduled"]) and (not agendaItem.properties["Deadline"]) then
                 --show the task in today if its not finished
-                if common.config.showNonTimeawareTasksToday and
+                if config.config.showNonTimeawareTasksToday and
                 common.isTodoItem(agendaItem.agendaItem[1]) and days[currentDateStr] then
                     table.insert(days[currentDateStr]["tasks"],
                         agendaItem.agendaItem[1].." "..agendaItem.agendaItem[2])
@@ -297,44 +299,44 @@ local function renderAgendaView()
 
     local bufNumber = vim.api.nvim_get_current_buf()
 
-    vim.cmd("highlight date guifg="..common.config.titleColor.." ctermfg="..common.config.titleColor)
+    vim.cmd("highlight date guifg="..config.config.titleColor.." ctermfg="..config.config.titleColor)
     vim.cmd("syntax match date /^- .*$/")
 
-    vim.cmd("highlight todo guifg="..common.config.todoTypeColor.." ctermfg="..common.config.todoTypeColor)
+    vim.cmd("highlight todo guifg="..config.config.todoTypeColor.." ctermfg="..config.config.todoTypeColor)
     vim.cmd("syntax match todo /TODO/")
 
-    vim.cmd("highlight habit guifg="..common.config.habitTypeColor.." ctermfg="..common.config.habitTypeColor)
+    vim.cmd("highlight habit guifg="..config.config.habitTypeColor.." ctermfg="..config.config.habitTypeColor)
     vim.cmd("syntax match habit /HABIT/")
 
-    vim.cmd("highlight due guifg="..common.config.dueTypeColor.." ctermfg="..common.config.dueTypeColor)
+    vim.cmd("highlight due guifg="..config.config.dueTypeColor.." ctermfg="..config.config.dueTypeColor)
     vim.cmd("syntax match due /DUE/")
 
-    vim.cmd("highlight done guifg="..common.config.doneTypeColor.." ctermfg="..common.config.doneTypeColor)
+    vim.cmd("highlight done guifg="..config.config.doneTypeColor.." ctermfg="..config.config.doneTypeColor)
     vim.cmd("syntax match done /DONE/")
 
-    vim.cmd("highlight info guifg="..common.config.infoTypeColor.." ctermfg="..common.config.infoTypeColor)
+    vim.cmd("highlight info guifg="..config.config.infoTypeColor.." ctermfg="..config.config.infoTypeColor)
     vim.cmd("syntax match info /INFO/")
 
-    vim.cmd("highlight completionColor guifg="..common.config.completionColor.." ctermfg="..common.config.completionColor)
+    vim.cmd("highlight completionColor guifg="..config.config.completionColor.." ctermfg="..config.config.completionColor)
     vim.cmd("syntax match completionColor /Completion:/")
     vim.cmd("syntax match completionColor /Repeat:/")
 
-    vim.cmd("highlight deadline guifg="..common.config.deadlineTimeColor.." ctermfg="..common.config.deadlineTimeColor)
+    vim.cmd("highlight deadline guifg="..config.config.deadlineTimeColor.." ctermfg="..config.config.deadlineTimeColor)
     vim.cmd("syntax match deadline /Deadline:/")
     vim.cmd("syntax match deadline /(DL: \\+.*)/")
 
-    vim.cmd("highlight cancelledTask guifg="..common.config.cancelledTypeColor.." ctermfg="..common.config.cancelledTypeColor)
+    vim.cmd("highlight cancelledTask guifg="..config.config.cancelledTypeColor.." ctermfg="..config.config.cancelledTypeColor)
     vim.cmd("syntax match cancelledTask /CANCELLED/")
 
-    vim.cmd("highlight scheduled guifg="..common.config.scheduledTimeColor.." ctermfg="..common.config.scheduledTimeColor)
+    vim.cmd("highlight scheduled guifg="..config.config.scheduledTimeColor.." ctermfg="..config.config.scheduledTimeColor)
     vim.cmd("syntax match scheduled /Scheduled:/")
     vim.cmd("syntax match scheduled /(SC: \\+.*)/")
 
-    vim.cmd("highlight tag guifg="..common.config.tagColor.." ctermfg="..common.config.tagColor)
+    vim.cmd("highlight tag guifg="..config.config.tagColor.." ctermfg="..config.config.tagColor)
     vim.cmd("syntax match tag /\\#[a-zA-Z0-9]\\+/")
     vim.cmd("syntax match tag /:[a-zA-Z0-9:]\\+:/")
 
-    for customType, itsColor in pairs(common.config.customTodoTypes) do
+    for customType, itsColor in pairs(config.config.customTodoTypes) do
         vim.cmd("highlight "..customType.." guifg="..itsColor.." ctermfg="..itsColor)
         vim.cmd("syntax match "..customType.." /"..customType.."/")
     end
@@ -352,8 +354,8 @@ local function renderAgendaView()
 
     --add some comments here, how pagination works can be easily forgotten
     --pagination
-    local pageStart = currentDayStart + common.oneDay * common.config.agendaViewPageItems * relativePage
-    local pageEnd = pageStart + common.oneDay * (common.config.agendaViewPageItems - 1)
+    local pageStart = currentDayStart + common.oneDay * config.config.agendaViewPageItems * relativePage
+    local pageEnd = pageStart + common.oneDay * (config.config.agendaViewPageItems - 1)
 
     local dayNTasks = getAgendaTasks(pageStart, pageEnd)
 
@@ -395,7 +397,7 @@ end
 
 vim.api.nvim_create_user_command('AgendaView', function()
     filterByTags={};
-    agendaItemsCache = M.getAgendaItems("")
+    agendaItemsCache = common.getAgendaItems("")
     renderAgendaView()
 end, {})
 
@@ -406,7 +408,7 @@ vim.api.nvim_create_user_command('AgendaViewWTF', function(opts)
     end
     filterByTags = args
 
-    agendaItemsCache = M.getAgendaItems("")
+    agendaItemsCache = common.getAgendaItems("")
     renderAgendaView()
 end, {nargs = '*'})
 
