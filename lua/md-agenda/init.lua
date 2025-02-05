@@ -15,14 +15,6 @@ M.setup = function(opts)
 
     common.config.customTodoTypes = opts.customTodoTypes or {}
 
-    --Custom item type support:
-    -- {
-    -- customTodoTypes={"SIGMA","CHUD"}
-    -- customCompletionTypes={"CANCELLED"}
-    -- maybe even theirMap{SIGMA="CANCELLED", CHUD="DONE"}
-    -- 
-    -- } -- I may also need a function to list custom types while checking.
-
     common.config.dashboardOrder = opts.dashboardOrder or {"All TODO Items"}
     common.config.dashboard = opts.dashboard or {
         ["All TODO Items"] = {
@@ -72,6 +64,47 @@ M.setup = function(opts)
             require("md-agenda.habitView")
             require("md-agenda.agendaDashboard")
             require("md-agenda.searchItem")
+
+            for _,m in ipairs(vim.fn.getmatches()) do
+                if m.group == "todoType" or
+                m.group == "habitType" or
+                m.group == "doneType" or
+                m.group == "dueType" or
+                m.group == "infoType" or
+                m.group == "cancelledTask" or
+                m.group == "tag" or common.isTodoItem(m.group) then
+                    vim.fn.matchdelete(m.id)
+                end
+            end
+
+            --Highlight syntax in the buffer
+            vim.cmd("highlight todoType guifg="..common.config.todoTypeColor.." ctermfg="..common.config.todoTypeColor)
+            --vim.api.nvim_set_hl(5, "todoType", { fg = common.config.todoTypeColor, ctermfg=common.config.todoTypeColor })
+            vim.cmd("call matchadd('todoType', 'TODO')")
+
+            vim.cmd("highlight habitType guifg="..common.config.habitTypeColor.." ctermfg="..common.config.habitTypeColor)
+            vim.cmd("call matchadd('habitType','HABIT')")
+
+            vim.cmd("highlight dueType guifg="..common.config.dueTypeColor.." ctermfg="..common.config.dueTypeColor)
+            vim.cmd("call matchadd('dueType','DUE')")
+
+            vim.cmd("highlight doneType guifg="..common.config.doneTypeColor.." ctermfg="..common.config.doneTypeColor)
+            vim.cmd("call matchadd('doneType','DONE')")
+
+            vim.cmd("highlight infoType guifg="..common.config.infoTypeColor.." ctermfg="..common.config.infoTypeColor)
+            vim.cmd("call matchadd('infoType','INFO')")
+
+            vim.cmd("highlight cancelledTask guifg="..common.config.cancelledTypeColor.." ctermfg="..common.config.cancelledTypeColor)
+            vim.cmd("call matchadd('cancelledTask','CANCELLED')")
+
+            vim.cmd("highlight tag guifg="..common.config.tagColor.." ctermfg="..common.config.tagColor)
+            vim.cmd("call matchadd('tag','\\#[a-zA-Z0-9]\\+')")
+            vim.cmd("call matchadd('tag',':[a-zA-Z0-9:]\\+:')")
+
+            for customType, itsColor in pairs(common.config.customTodoTypes) do
+                vim.cmd("highlight "..customType.." guifg="..itsColor.." ctermfg="..itsColor)
+                vim.cmd("call matchadd('"..customType.."', '"..customType.."')")
+            end
         end,
     })
 

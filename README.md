@@ -94,7 +94,6 @@ Markdown time and task management plugin for NeoVim, inspired by org-agenda.
 
 ## Roadmap
 - Use a custom function for folding instead of markers. (help needed, low priority)
-- Highlight syntax if not using TreeSitter. (high priority)
 - Update the parent task's progress indicator and type if a sub task is done. (medium priority)
 ***
 
