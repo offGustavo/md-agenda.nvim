@@ -19,11 +19,13 @@ Markdown time and task management plugin for NeoVim, inspired by org-agenda.
 
             --optional
             agendaViewPageItems=10 --How many days should be in one agenda view page? - default: 10
-            showNonTimeawareTasksToday=false --Show agenda items that has no scheduled time nor deadline in today.
-            remindDeadlineInDays=30 --In how many days before the deadline, a reminder for the todo task should be shown today? - default: 30
-            remindScheduledInDays=10 --In how many days before the scheduled time, a reminder for the todo task should be shown today? - default: 10
+            showNonTimeawareTasksToday=false --Show agenda items that has no scheduled time nor deadline in today, in the agenda view.
+            remindDeadlineInDays=30 --In how many days before the deadline, a reminder for the todo task should be shown today, in the agenda view? - default: 30
+            remindScheduledInDays=10 --In how many days before the scheduled time, a reminder for the todo task should be shown today, in the agenda view? - default: 10
+            
             habitViewPastItems=24 --How many past days should be in the habit view? - default: 24
             habitViewFutureItems=3 --How many future days should be in the habit view? -default: 3
+            
             foldmarker="{{{,}}}" --For folding logbook entries -default: {{{,}}}
 
             --Custom types that you can use instead of TODO - default: {}
@@ -108,9 +110,9 @@ Markdown time and task management plugin for NeoVim, inspired by org-agenda.
 | **INFO** | Just for viewing important events in the agenda view. |
 | **DONE** | When a task is completed in time, it's type changes to DONE. |
 | **DUE** | When a task is completed after the given deadline, it's type changes to DUE. |
-| **CANCELLED** | When a TODO task is cancelled, it's type changes to CANCELLED. |
+| **CANCELLED** | When a TODO task is cancelled, it's type changes to CANCELLED (You're kidding! 😱) |
 
-- You can also use custom item types instead of **TODO** with customTodoTypes configuration.
+- You can also use custom item types instead of **TODO** with **customTodoTypes** configuration.
 
 **Here are some example agenda items to understand their structure better:**
 ```md
@@ -215,7 +217,7 @@ A Progress indicator is splitted into two parts. The **progress (x)** and the **
 
 | Condition | Description |
 | - | - |
-| no **Scheduled** nor **Deadline** | If its **TODO**, its shown today. |
+| no **Scheduled** nor **Deadline** | It is not shown by default. If you enable showing them in configuration and if its **TODO**, its shown today. |
 | **Scheduled** exists but not **Deadline** | Its shown in the scheduled day. Also, in today until its finished. |
 | **Deadline** exists but not **Scheduled** | Its shown in the deadline day. Also, based on the configuration, a reminder is shown today if the agenda type is **TODO**. |
 | Both **Scheduled** and **Deadline** exists | It is shown in both deadline and scheduled days. Also shown in today if the current date is between them and the agenda type is **TODO**. |
