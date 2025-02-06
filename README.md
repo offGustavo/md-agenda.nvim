@@ -81,8 +81,6 @@ Markdown time and task management plugin for NeoVim, inspired by org-agenda.
         vim.keymap.set('n', '<A-s>', ":TaskScheduled<CR>")
         vim.keymap.set('n', '<A-d>', ":TaskDeadline<CR>")
 
-        vim.keymap.set('n', '<A-f>', ":TaskSearch<CR>")
-
         --optional: create your own agenda view command to show tasks with a specific tag only
         vim.api.nvim_create_user_command("WorkAgenda", function()
             vim.cmd("AgendaViewWTF work companyA") --Run the agenda view with tag filters
