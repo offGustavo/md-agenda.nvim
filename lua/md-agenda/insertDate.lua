@@ -1,5 +1,7 @@
 local common = require("md-agenda.common")
 
+local config = require("md-agenda.config")
+
 local vim = vim
 
 local insertDate = {}
@@ -44,7 +46,11 @@ local function renderDateSelector(insertType)
 
     local bufNumber = vim.api.nvim_get_current_buf()
 
+    vim.cmd("highlight bufTitle guifg="..config.config.titleColor.." ctermfg="..config.config.titleColor)
+    vim.cmd("syntax match bufTitle /^- .*$/")
+
     local renderLines = {}
+    table.insert(renderLines, "Date Selector - Page: "..relativePage)
 
     -- Get the current date and time
     local currentDateTable = os.date("*t")
@@ -65,7 +71,8 @@ local function renderDateSelector(insertType)
     lineNumValue = {}
     for i,dateStr in ipairs(dates) do
 
-        lineNumValue[i] = dateStr
+        --Increase i by 1 to skip the buffer title
+        lineNumValue[i+1] = dateStr
 
         --format date for better readability
         local year,month,day=dateStr:match("([0-9]+)-([0-9]+)-([0-9]+)")
@@ -96,6 +103,11 @@ local function renderDateSelector(insertType)
 
     vim.keymap.set('n', '<CR>', function()
         local dsLineNum = vim.api.nvim_win_get_cursor(0)[1]
+        if dsLineNum==1 then
+            print("Please select a date by placing your cursor on the top of it.")
+            return
+        end
+
         if insertType=="scheduled" then
             vim.cmd(":q")
             common.addPropertyToBufTask(agendaItemlineNum, "Scheduled", lineNumValue[dsLineNum])
