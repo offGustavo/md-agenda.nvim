@@ -3,7 +3,6 @@ Markdown time and task management plugin for NeoVim, inspired by org-agenda.
 
 ## Installation
 ### Requirements
-- [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim)
 - [ripgrep](https://github.com/BurntSushi/ripgrep)
 
 ### Using lazy.nvim
@@ -250,15 +249,9 @@ For grouping and displaying agenda items by filters in one page buffer.
 | <span style="color:gray">**Gray**</span> | If the deadline is on that time. |
 
 ## Date Selection
-Upon running one of the date selection commands, telescope will list date items starting from today to next 365 days.
+Upon running one of the date selection commands, a date selection buffer appears. You can navigate back and forth using right and left arrow keys.
 
 | Command | Description |
 | - | - |
 | `:TaskScheduled` | Insert **Scheduled** property by placing cursor on the agenda item. |
 | `:TaskDeadline` | Insert **Deadline** property by placing cursor on the agenda item. |
-
-
-## Agenda Item Search
-| Command | Description |
-| - | - |
-| `:TaskSearch` | Lists all agenda items with telescope and navigates to the selected item's location. |

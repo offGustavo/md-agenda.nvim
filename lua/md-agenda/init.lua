@@ -1,20 +1,42 @@
+local vim = vim
+
 local function setup(opts)
     local config = require("md-agenda.config").initConfig(opts)
 
     local common = require("md-agenda.common")
 
+    local insertDate = require("md-agenda.insertDate")
+    local checkTask = require("md-agenda.checkTask")
+    local agendaView = require("md-agenda.agendaView")
+    local habitView = require("md-agenda.habitView")
+    local agendaDashboard = require("md-agenda.agendaDashboard")
+
+    --Date Picker
+    vim.api.nvim_create_user_command('TaskScheduled', function()insertDate.dateSelector("scheduled")end, {})
+    vim.api.nvim_create_user_command('TaskDeadline', function()insertDate.dateSelector("deadline")end, {})
+
+    --Check Task
+    vim.api.nvim_create_user_command('CheckTask', function()checkTask.checkTask("")end, {})
+    vim.api.nvim_create_user_command("CancelTask", function()checkTask.checkTask("cancel")end, {})
+
+    --Agenda View
+    vim.api.nvim_create_user_command('AgendaView',agendaView.agendaView, {})
+    vim.api.nvim_create_user_command('AgendaViewWTF', function(avOpts)agendaView.agendaViewWTF(avOpts)end, {nargs = '*'})
+    vim.api.nvim_create_user_command('NextAgendaPage', agendaView.nextAgendaPage, {})
+    vim.api.nvim_create_user_command('PrevAgendaPage', agendaView.prevAgendaPage, {})
+
+    --Habit View
+    vim.api.nvim_create_user_command('HabitView', habitView.renderHabitView, {})
+
+    --Agenda Dashboard
+    vim.api.nvim_create_user_command('AgendaDashboard', agendaDashboard.renderAgendaDashboard, {})
+
     vim.api.nvim_create_autocmd("FileType", {
         pattern = "markdown",
         callback = function()
+
             vim.opt.foldmethod="marker"
             vim.opt.foldmarker = config.config.foldmarker
-
-            require("md-agenda.insertDate")
-            require("md-agenda.checkTask")
-            require("md-agenda.agendaView")
-            require("md-agenda.habitView")
-            require("md-agenda.agendaDashboard")
-            require("md-agenda.searchItem")
 
             for _,m in ipairs(vim.fn.getmatches()) do
                 if m.group == "todoType" or

@@ -4,6 +4,8 @@ local common = require("md-agenda.common")
 
 local vim = vim
 
+local agendaDashboard = {}
+
 --Function to show times in agenda items only if they are different than 00:00
 local function showTimeStrInAgendaItem(timeStr)
     local hourandminute = timeStr:match("([0-9]+:[0-9]+)")
@@ -325,7 +327,7 @@ local function getGroupsAndItems()
     return groupsAndItems
 end
 
-local function renderAgendaDashboard()
+agendaDashboard.renderAgendaDashboard = function()
     vim.cmd("new")
 
     local bufNumber = vim.api.nvim_get_current_buf()
@@ -392,6 +394,4 @@ local function renderAgendaDashboard()
     vim.api.nvim_buf_set_option(bufNumber, "modified", false)
 end
 
-vim.api.nvim_create_user_command('AgendaDashboard', function()
-    renderAgendaDashboard()
-end, {})
+return agendaDashboard

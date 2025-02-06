@@ -4,6 +4,8 @@ local common = require("md-agenda.common")
 
 local vim = vim
 
+local habitView = {}
+
 ---------------HABIT VIEW---------------
 local function getHabitTasks(startTimeUnix, endTimeUnix)
     local currentDateTable = os.date("*t")
@@ -116,7 +118,7 @@ local function getHabitTasks(startTimeUnix, endTimeUnix)
 end
 
 --type is habit or agenda
-local function renderHabitView()
+habitView.renderHabitView = function()
     vim.cmd("new")
 
     local bufNumber = vim.api.nvim_get_current_buf()
@@ -192,4 +194,4 @@ local function renderHabitView()
     vim.api.nvim_buf_set_option(bufNumber, "modified", false)
 end
 
-vim.api.nvim_create_user_command('HabitView', renderHabitView, {})
+return habitView

@@ -2,9 +2,11 @@ local common = require("md-agenda.common")
 
 local vim = vim
 
+local checkTask = {}
+
 ----------------CHECK TASK-------------
 --set comletion time property
-local function checkTask(checkAction)
+checkTask.checkTask = function(checkAction)
     local currentBuf = vim.api.nvim_get_current_buf()
     local currentBufLines = vim.api.nvim_buf_get_lines(currentBuf, 0, -1, true)
 
@@ -158,9 +160,4 @@ local function checkTask(checkAction)
     end
 end
 
---change this to a command
-vim.api.nvim_create_user_command('CheckTask', function()checkTask("")end, {})
-
-vim.api.nvim_create_user_command("CancelTask", function()
-    checkTask("cancel")
-end, {})
+return checkTask

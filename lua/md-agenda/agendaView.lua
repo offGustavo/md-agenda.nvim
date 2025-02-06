@@ -4,6 +4,8 @@ local common = require("md-agenda.common")
 
 local vim = vim
 
+local agendaView = {}
+
 local filterByTags = {} --{"event", "work"}
 --function for filtering tasks based on tags
 local function includeTask(taskLine)
@@ -395,13 +397,13 @@ local function renderAgendaView()
     vim.api.nvim_buf_set_option(bufNumber, "modified", false)
 end
 
-vim.api.nvim_create_user_command('AgendaView', function()
-    filterByTags={};
+agendaView.agendaView = function()
+     filterByTags={};
     agendaItemsCache = common.getAgendaItems("")
     renderAgendaView()
-end, {})
+end
 
-vim.api.nvim_create_user_command('AgendaViewWTF', function(opts)
+agendaView.agendaViewWTF = function(opts)
     local args = {}
     for arg in opts.args:gmatch("[a-zA-Z0-9]+") do
         table.insert(args, arg)
@@ -410,9 +412,9 @@ vim.api.nvim_create_user_command('AgendaViewWTF', function(opts)
 
     agendaItemsCache = common.getAgendaItems("")
     renderAgendaView()
-end, {nargs = '*'})
+end
 
-vim.api.nvim_create_user_command('NextAgendaPage', function()
+agendaView.nextAgendaPage = function ()
     relativePage=relativePage+1
 
     local buf = vim.api.nvim_get_current_buf()
@@ -425,9 +427,9 @@ vim.api.nvim_create_user_command('NextAgendaPage', function()
 
     vim.cmd('q')
     renderAgendaView()
-end, {})
+end
 
-vim.api.nvim_create_user_command('PrevAgendaPage', function()
+agendaView.prevAgendaPage = function ()
     relativePage=relativePage-1
 
     local buf = vim.api.nvim_get_current_buf()
@@ -440,4 +442,6 @@ vim.api.nvim_create_user_command('PrevAgendaPage', function()
 
     vim.cmd('q')
     renderAgendaView()
-end, {})
+end
+
+return agendaView

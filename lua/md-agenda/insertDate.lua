@@ -2,103 +2,128 @@ local common = require("md-agenda.common")
 
 local vim = vim
 
---------------SET SCHEDULE/DEADLINE VIA CALENDAR--------------
--- Function to generate an array of dates
-local function generateDateList()
-    local dateList = {}
-    local today = os.time() -- Get the current time
+local insertDate = {}
 
-    local weekdays = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"}
+local function getDates(startTimeUnix, endTimeUnix)
+    local currentDateTable = os.date("*t")
+    -- Set hours, minutes, and seconds to zero
+    currentDateTable.hour, currentDateTable.min, currentDateTable.sec = 0, 0, 0
+    --
+    local dates = {}
 
-    local months = {
-        "January",
-        "February",
-        "March",
-        "April",
-        "May",
-        "June",
-        "July",
-        "August",
-        "September",
-        "October",
-        "November",
-        "December"
-    }
+    local i = 0
+    while true do
+        if startTimeUnix + (i * common.oneDay) > endTimeUnix then
+            break
+        end
 
-    for i = 0, 365 do
-        local currentDate = os.date("*t", today + (i * common.oneDay)) -- Get the date for today + i days
-        table.insert(dateList, {
-            year = currentDate.year,
-            month = string.format("%02d", currentDate.month),
-            monthName = months[currentDate.month],
-            day = string.format("%02d", currentDate.day),
-            weekday=weekdays[currentDate.wday]
-        })
+        local nextDate = os.date("%Y-%m-%d %H:%M", startTimeUnix + (i * common.oneDay)) -- Get the date for today + i days
+        table.insert(dates,nextDate)
+        i=i+1
     end
 
-    return dateList
+    return dates
 end
 
-local datePickerItems = {}
-local function initializeDatePickerItems()
-    if #datePickerItems == 0 then
-        datePickerItems = generateDateList()
-    end
-end
+local agendaItemlineNum, agendaItemlineContent
 
---insertType: scheduled or deadline
-local function datePicker(insertType)
+local pageItemCount = 15
+local relativePage = 0
+local lineNumValue = {}
+--insertType: deadline or scheduled
+local function renderDateSelector(insertType)
 
-    local telescopePickers = require('telescope.pickers')
-    local telescopeFinders = require('telescope.finders')
-    local telescopeActions = require('telescope.actions')
-    local telescopeState = require('telescope.actions.state')
-    local telescopeConf = require("telescope.config").values
-
-    local lineNum = vim.api.nvim_win_get_cursor(0)[1]
-    local lineContent = vim.fn.getline(lineNum)
-
-    local taskType = lineContent:match("^#+ ([A-Z]+): .*")
-    if not (taskType=="TODO" or taskType=="HABIT" or taskType=="DONE" or taskType=="DUE" or taskType=="INFO" or taskType=="CANCELLED") then
-        print("Cannot open the date picker. The cursor is not on a task headline")
+    if not agendaItemlineContent:match("^ *#+ [A-Z]+: .*$") then
+        print("You need to place your cursor to the task to add a deadline or scheduled property to it.")
         return
     end
 
-    initializeDatePickerItems()
+    --The Below code is about date selector buffer
 
-    -- Use Telescope to select a suggestion
-    telescopePickers.new({}, {
-        prompt_title = "Select A Date",
-        finder = telescopeFinders.new_table {
-            results = datePickerItems,
-            entry_maker = function(entry)
-                local value = entry.year.."-"..entry.month.."-"..entry.day.." 00:00"
-                local display = entry.weekday ..", ".. entry.day.." "..entry.monthName.." ("..entry.month..") "..entry.year
-                return {
-                    value = value,
-                    display = display,
-                    ordinal = display
-                }
-            end,
-        },
-        sorter = telescopeConf.file_sorter(),
-        attach_mappings = function(prompt_bufnr, map)
-            telescopeActions.select_default:replace(function()
-                telescopeActions.close(prompt_bufnr)
-                local selection = telescopeState.get_selected_entry()
+    vim.cmd("new")
 
-                if selection then
-                    if insertType=="scheduled" then
-                        common.addPropertyToBufTask(lineNum, "Scheduled", selection.value)
+    local bufNumber = vim.api.nvim_get_current_buf()
 
-                    elseif insertType=="deadline" then
-                        common.addPropertyToBufTask(lineNum, "Deadline", selection.value)
-                    end
-                end
-            end)
-            return true
-        end,
-    }):find()
+    local renderLines = {}
+
+    -- Get the current date and time
+    local currentDateTable = os.date("*t")
+    local currentDateStr = currentDateTable.year.."-"..string.format("%02d", currentDateTable.month).."-"..string.format("%02d", currentDateTable.day)
+
+    -- Set hours, minutes, and seconds to zero
+    currentDateTable.hour, currentDateTable.min, currentDateTable.sec = 0, 0, 0
+    -- Convert the table back to a timestamp
+    local currentDayStart = os.time(currentDateTable)
+
+    --add some comments here, how pagination works can be easily forgotten
+    --pagination
+    local pageStart = currentDayStart + common.oneDay * pageItemCount * relativePage
+    local pageEnd = pageStart + common.oneDay * (pageItemCount - 1)
+
+    local dates = getDates(pageStart, pageEnd)
+
+    lineNumValue = {}
+    for i,dateStr in ipairs(dates) do
+
+        lineNumValue[i] = dateStr
+
+        --format date for better readability
+        local year,month,day=dateStr:match("([0-9]+)-([0-9]+)-([0-9]+)")
+        local taskTimeTable = {
+            year = tonumber(year),
+            month = tonumber(month),
+            day = tonumber(day),
+            hour = 0, min = 0, sec = 0,
+            isdst = false  -- daylight saving time flag
+        }
+        local dayUnixTime = os.time(taskTimeTable)
+        local humanDate = os.date("%d %B(%m) %Y - %A",dayUnixTime)
+
+        if currentDateStr == year.."-"..month.."-"..day then
+            table.insert(renderLines, "- (Today) "..humanDate)
+        else
+            table.insert(renderLines, "- "..humanDate)
+        end
+
+    end
+
+    vim.api.nvim_buf_set_lines(0, 0, -1, false, renderLines)
+
+    --disable modifying
+    vim.api.nvim_buf_set_option(bufNumber, "readonly", true)
+    vim.api.nvim_buf_set_option(bufNumber, "modifiable", false)
+    vim.api.nvim_buf_set_option(bufNumber, "modified", false)
+
+    vim.keymap.set('n', '<CR>', function()
+        local dsLineNum = vim.api.nvim_win_get_cursor(0)[1]
+        if insertType=="scheduled" then
+            vim.cmd(":q")
+            common.addPropertyToBufTask(agendaItemlineNum, "Scheduled", lineNumValue[dsLineNum])
+
+        elseif insertType=="deadline" then
+            vim.cmd(":q")
+            common.addPropertyToBufTask(agendaItemlineNum, "Deadline", lineNumValue[dsLineNum])
+        end
+    end, { buffer = bufNumber, noremap = true, silent = true })
+
+    vim.keymap.set('n', '<Right>', function()
+        relativePage=relativePage+1
+        vim.cmd('q')
+        renderDateSelector(insertType)
+    end, { buffer = bufNumber, noremap = true, silent = true })
+
+    vim.keymap.set('n', '<Left>', function()
+        relativePage=relativePage-1
+        vim.cmd('q')
+        renderDateSelector(insertType)
+    end, { buffer = bufNumber, noremap = true, silent = true })
 end
-vim.api.nvim_create_user_command('TaskScheduled', function()datePicker("scheduled")end, {})
-vim.api.nvim_create_user_command('TaskDeadline', function()datePicker("deadline")end, {})
+
+insertDate.dateSelector = function(insertType)
+    agendaItemlineNum = vim.api.nvim_win_get_cursor(0)[1]
+    agendaItemlineContent = vim.fn.getline(agendaItemlineNum)
+    relativePage = 0
+    renderDateSelector(insertType)
+end
+
+return insertDate
