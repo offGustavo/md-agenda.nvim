@@ -395,10 +395,22 @@ local function renderAgendaView()
     vim.api.nvim_buf_set_option(bufNumber, "readonly", true)
     vim.api.nvim_buf_set_option(bufNumber, "modifiable", false)
     vim.api.nvim_buf_set_option(bufNumber, "modified", false)
+
+    vim.keymap.set('n', '<Right>', function()
+        relativePage=relativePage+1
+        vim.cmd('bd')
+        renderAgendaView()
+    end, { buffer = bufNumber, noremap = true, silent = true })
+
+    vim.keymap.set('n', '<Left>', function()
+        relativePage=relativePage-1
+        vim.cmd('bd')
+        renderAgendaView()
+    end, { buffer = bufNumber, noremap = true, silent = true })
 end
 
 agendaView.agendaView = function()
-     filterByTags={};
+    filterByTags={};
     agendaItemsCache = common.getAgendaItems("")
     renderAgendaView()
 end
@@ -415,33 +427,11 @@ agendaView.agendaViewWTF = function(opts)
 end
 
 agendaView.nextAgendaPage = function ()
-    relativePage=relativePage+1
-
-    local buf = vim.api.nvim_get_current_buf()
-    local firstLineContent = vim.api.nvim_buf_get_lines(buf, 0, 1, false)[1]
-
-    if not firstLineContent:match("Agenda View %- Page: ") then
-        print("You can run :NextAgendaPage only in Agenda View")
-        return
-    end
-
-    vim.cmd('q')
-    renderAgendaView()
+    print("This command is removed. Please use regular arrow keys to navigate in the agenda view.")
 end
 
 agendaView.prevAgendaPage = function ()
-    relativePage=relativePage-1
-
-    local buf = vim.api.nvim_get_current_buf()
-    local firstLineContent = vim.api.nvim_buf_get_lines(buf, 0, 1, false)[1]
-
-    if not firstLineContent:match("Agenda View %- Page: ") then
-        print("You can run :PrevAgendaPage only in Agenda View")
-        return
-    end
-
-    vim.cmd('q')
-    renderAgendaView()
+    print("This command is removed. Please use regular arrow keys to navigate in the agenda view.")
 end
 
 return agendaView

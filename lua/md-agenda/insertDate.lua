@@ -109,24 +109,24 @@ local function renderDateSelector(insertType)
         end
 
         if insertType=="scheduled" then
-            vim.cmd(":q")
+            vim.cmd("bd")
             common.addPropertyToBufTask(agendaItemlineNum, "Scheduled", lineNumValue[dsLineNum])
 
         elseif insertType=="deadline" then
-            vim.cmd(":q")
+            vim.cmd("bd")
             common.addPropertyToBufTask(agendaItemlineNum, "Deadline", lineNumValue[dsLineNum])
         end
     end, { buffer = bufNumber, noremap = true, silent = true })
 
     vim.keymap.set('n', '<Right>', function()
         relativePage=relativePage+1
-        vim.cmd('q')
+        vim.cmd('bd')
         renderDateSelector(insertType)
     end, { buffer = bufNumber, noremap = true, silent = true })
 
     vim.keymap.set('n', '<Left>', function()
         relativePage=relativePage-1
-        vim.cmd('q')
+        vim.cmd('bd')
         renderDateSelector(insertType)
     end, { buffer = bufNumber, noremap = true, silent = true })
 end
