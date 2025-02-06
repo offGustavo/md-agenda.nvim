@@ -192,6 +192,9 @@ habitView.renderHabitView = function()
     vim.api.nvim_buf_set_option(bufNumber, "readonly", true)
     vim.api.nvim_buf_set_option(bufNumber, "modifiable", false)
     vim.api.nvim_buf_set_option(bufNumber, "modified", false)
+
+    vim.keymap.set('n', '<Esc>', function()vim.cmd('bd')
+    end, { buffer = bufNumber, noremap = true, silent = true })
 end
 
 return habitView

@@ -407,6 +407,9 @@ local function renderAgendaView()
         vim.cmd('bd')
         renderAgendaView()
     end, { buffer = bufNumber, noremap = true, silent = true })
+
+    vim.keymap.set('n', '<Esc>', function()vim.cmd('bd')
+    end, { buffer = bufNumber, noremap = true, silent = true })
 end
 
 agendaView.agendaView = function()

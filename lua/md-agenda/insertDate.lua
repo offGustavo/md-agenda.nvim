@@ -129,6 +129,9 @@ local function renderDateSelector(insertType)
         vim.cmd('bd')
         renderDateSelector(insertType)
     end, { buffer = bufNumber, noremap = true, silent = true })
+
+    vim.keymap.set('n', '<Esc>', function()vim.cmd('bd')
+    end, { buffer = bufNumber, noremap = true, silent = true })
 end
 
 insertDate.dateSelector = function(insertType)

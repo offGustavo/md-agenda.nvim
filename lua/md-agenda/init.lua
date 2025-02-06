@@ -22,8 +22,8 @@ local function setup(opts)
     --Agenda View
     vim.api.nvim_create_user_command('AgendaView',agendaView.agendaView, {})
     vim.api.nvim_create_user_command('AgendaViewWTF', function(avOpts)agendaView.agendaViewWTF(avOpts)end, {nargs = '*'})
-    vim.api.nvim_create_user_command('NextAgendaPage', agendaView.nextAgendaPage, {})
-    vim.api.nvim_create_user_command('PrevAgendaPage', agendaView.prevAgendaPage, {})
+    vim.api.nvim_create_user_command('NextAgendaPage', agendaView.nextAgendaPage, {}) -- deprecated
+    vim.api.nvim_create_user_command('PrevAgendaPage', agendaView.prevAgendaPage, {}) -- deprecated
 
     --Habit View
     vim.api.nvim_create_user_command('HabitView', habitView.renderHabitView, {})

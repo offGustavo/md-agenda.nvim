@@ -77,8 +77,6 @@ Markdown time and task management plugin for NeoVim, inspired by org-agenda.
         vim.keymap.set('n', '<A-h>', ":HabitView<CR>")
         vim.keymap.set('n', '<A-o>', ":AgendaDashboard<CR>")
         vim.keymap.set('n', '<A-a>', ":AgendaView<CR>")
-        vim.keymap.set('n', '<A-Left>', ":PrevAgendaPage<CR>")
-        vim.keymap.set('n', '<A-Right>', ":NextAgendaPage<CR>")
 
         vim.keymap.set('n', '<A-s>', ":TaskScheduled<CR>")
         vim.keymap.set('n', '<A-d>', ":TaskDeadline<CR>")
@@ -207,12 +205,18 @@ A Progress indicator is splitted into two parts. The **progress (x)** and the **
 - if the current scheduled time exceeds the given deadline, the task is marked as due.
 - if the next scheduled time is going to exceed the given deadline, the task is marked as done.
 
-## Agenda View
+## Plugin Buffers
+To close a buffer, you can use the escape key.
+
+### Agenda View
 | Command | Description |
 | - | - |
 | `:AgendaView` | Open the agenda view. |
 | `:AgendaViewWTF tag1 tag2` | Open the agenda view, and only show items which contains given tags. You can also place item types like TODO to the arguments instead of tags.|
-| `:PrevAgendaPage` `:NextAgendaPage` | Switch between pages back and forth respectively. (Pages are relative to today.)|
+
+> [!TIP]
+> To switch between the agenda view pages,
+> use the left and right arrow keys.
 
 | Condition | Description |
 | - | - |
@@ -226,14 +230,14 @@ A Progress indicator is splitted into two parts. The **progress (x)** and the **
 
 To show **reminders about special days like "April Fools' Day,"** you can add the [ready-made files](https://github.com/zenarvus/md-agenda.nvim/tree/main/specialDays) to your agendaFiles configuration, or you can create one yourself.
 
-## Agenda Dashboard
+### Agenda Dashboard
 For grouping and displaying agenda items by filters in one page buffer.
 
 | Command | Description |
 | - | - |
 | `:AgendaDashboard` | Open the agenda dashboard. |
 
-## Habit View
+### Habit View
 | Command | Description |
 | - | - |
 | `:HabitView` | Opens the habit view (aka: consistency graph.) Only habit items are shown in it. |
@@ -248,8 +252,8 @@ For grouping and displaying agenda items by filters in one page buffer.
 | <span style="color:red">**Red**</span> | If the task had to be done that day but it was not. |
 | <span style="color:gray">**Gray**</span> | If the deadline is on that time. |
 
-## Date Selection
-Upon running one of the date selection commands, a date selection buffer appears. You can navigate back and forth using right and left arrow keys.
+### Date Selection
+Upon running one of the date selection commands, a date selection buffer will appear. You can navigate back and forth using right and left arrow keys.
 
 | Command | Description |
 | - | - |
