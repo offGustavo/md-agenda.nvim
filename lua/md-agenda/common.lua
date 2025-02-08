@@ -461,19 +461,7 @@ common.addPropertyToBufTask = function(taskLineNum, key, value)
     end
 end
 
-common.addPropertyToItem = function(filepath, itemLineNum, key, value)
-    -- Read the lines from the specified file
-    local file = io.open(filepath, "r")
-    if not file then
-        print("Could not open file: " .. filepath)
-        return
-    end
-
-    local fileLines = {}
-    for line in file:lines() do
-        table.insert(fileLines, line)
-    end
-    file:close()
+common.addPropertyToItem = function(fileLines, itemLineNum, key, value)
 
     local taskProperties = common.getTaskProperties(fileLines, itemLineNum, true)
 
@@ -488,17 +476,7 @@ common.addPropertyToItem = function(filepath, itemLineNum, key, value)
         table.insert(fileLines, itemLineNum + 1, newProperty)
     end
 
-    -- Write the modified lines back to the file
-    file = io.open(filepath, "w")
-    if not file then
-        print("Could not open file for writing: " .. filepath)
-        return
-    end
-
-    for _, line in ipairs(fileLines) do
-        file:write(line .. "\n")
-    end
-    file:close()
+    return fileLines
 end
 
 --------------SAVE TO THE LOGBOOK---------------
@@ -555,24 +533,11 @@ common.saveToLogbook = function(taskLineNum, logStr)
 end
 
 --New function that uses given filepath instead of the current buffer.
-common.addToItemLogbook = function(filepath, itemLineNum, logStr)
+common.addItemToLogbook = function(fileLines, itemLineNum, logStr)
     local lineNum = itemLineNum+1
 
     local logbookExists = false
     local logbookStart=0
-
-    -- Read the lines from the specified file
-    local file = io.open(filepath, "r")
-    if not file then
-        print("Could not open file: " .. filepath)
-        return
-    end
-
-    local fileLines = {}
-    for line in file:lines() do
-        table.insert(fileLines, line)
-    end
-    file:close()
 
     --determine if the task has a logbook
     while true do
@@ -614,17 +579,7 @@ common.addToItemLogbook = function(filepath, itemLineNum, logStr)
         end
     end
 
-    -- Write the modified lines back to the file
-    file = io.open(filepath, "w")
-    if not file then
-        print("Could not open file for writing: " .. filepath)
-        return
-    end
-
-    for _, line in ipairs(fileLines) do
-        file:write(line .. "\n")
-    end
-    file:close()
+    return fileLines
 end
 
 ---------------GET LOGBOOK ENTRIES---------------
