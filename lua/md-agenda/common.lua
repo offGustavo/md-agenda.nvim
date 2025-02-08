@@ -439,8 +439,7 @@ common.getTaskProperties = function(ContentLinesArr, taskLineNum, withLineNum)
     return properities
 end
 
--------------ADD A PROPERTY TO A TASK IN THE CURRENT BUFFER-----------------
---add a new property to the task or update the existing one
+--DEPRECATED
 common.addPropertyToBufTask = function(taskLineNum, key, value)
     local currentBuf = vim.api.nvim_get_current_buf()
     local currentBufLines = vim.api.nvim_buf_get_lines(currentBuf, 0, -1, true)
@@ -461,6 +460,7 @@ common.addPropertyToBufTask = function(taskLineNum, key, value)
     end
 end
 
+--add a new property to the task or update the existing one
 common.addPropertyToItem = function(fileLines, itemLineNum, key, value)
 
     local taskProperties = common.getTaskProperties(fileLines, itemLineNum, true)
@@ -479,7 +479,7 @@ common.addPropertyToItem = function(fileLines, itemLineNum, key, value)
     return fileLines
 end
 
---------------SAVE TO THE LOGBOOK---------------
+---DEPRECATED
 common.saveToLogbook = function(taskLineNum, logStr)
     local lineNum = taskLineNum+1
 

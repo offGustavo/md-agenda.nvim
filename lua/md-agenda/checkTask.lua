@@ -4,8 +4,7 @@ local vim = vim
 
 local ta = {} --task action
 
-----------------CHECK TASK-------------
---set comletion time property
+---DEPRECATED
 ta.checkTask = function(checkAction)
     local currentBuf = vim.api.nvim_get_current_buf()
     local currentBufLines = vim.api.nvim_buf_get_lines(currentBuf, 0, -1, true)

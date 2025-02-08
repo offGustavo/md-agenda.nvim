@@ -100,14 +100,14 @@ local function getAgendaTasks(startTimeUnix, endTimeUnix)
             if agendaItem.properties["Scheduled"] then
                 parsedScheduled = common.parseTaskTime(agendaItem.properties["Scheduled"])
 
-                if not parsedScheduled then print("for some reason, scheduled could not correctly parsed") return end
+                if not parsedScheduled then print("for some reason, scheduled could not correctly parsed") return {} end
             end
 
             local parsedDeadline
             if agendaItem.properties["Deadline"] then
                 parsedDeadline = common.parseTaskTime(agendaItem.properties["Deadline"])
 
-                if not parsedDeadline then print("for some reason, deadline could not correctly parsed") return end
+                if not parsedDeadline then print("for some reason, deadline could not correctly parsed") return {} end
             end
             ------------------
 
