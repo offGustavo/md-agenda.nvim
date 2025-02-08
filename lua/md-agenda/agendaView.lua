@@ -135,7 +135,7 @@ local function getAgendaTasks(startTimeUnix, endTimeUnix)
                     end
                 end
 
-                --insert text to current date if the current date is close to task scheduled date by n days
+                --insert text to current date for TODO items if the current date is close to the task scheduled date by n days
                 --also if current date is not higher than the task deadline originally
                 if common.isTodoItem(agendaItem.agendaItem[1]) and days[currentDateStr] and (currentDayStart < parsedScheduled["unixTime"]) and
                 (currentDayStart + ((config.config.remindScheduledInDays+1)*common.oneDay) > parsedScheduled["unixTime"]) then
@@ -145,7 +145,8 @@ local function getAgendaTasks(startTimeUnix, endTimeUnix)
                         " (SC: "..remainingOrPassedDays(currentDateStr, agendaItem.properties["Scheduled"])..")"})
                 end
 
-                --show the task in today until its done, as it has a scheduled date but no deadline
+                --show the task in today until its done if the current time is higher than the scheduled date.
+                --Because it has a scheduled date but no deadline
                 if common.isTodoItem(agendaItem.agendaItem[1]) and days[currentDateStr] and (parsedScheduled["unixTime"] < currentDayStart) then
                     table.insert(days[currentDateStr], {agendaItem.metadata[1], agendaItem.metadata[2],
                         agendaItem.agendaItem[1].." "..agendaItem.agendaItem[2]..

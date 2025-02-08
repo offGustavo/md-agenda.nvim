@@ -237,7 +237,6 @@ common.parseTaskTime = function(timeString)
         -----------------
 
         --if the repeat type is "++" and the next unix time is in the past, increase it until it shows a future time.
-        --TODO FIX: If today's time is higher than 00:00, instead of scheduleding today, it schedules to tommorow.
         if repeatType=="++" and taskTimeMap["nextUnixTime"] < currentUnixTime then
                 local taskDateWithDetails = os.date("*t", taskUnixTime)
                 --start the nextUnixTime from today.
