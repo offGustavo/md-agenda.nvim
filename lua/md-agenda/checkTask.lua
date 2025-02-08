@@ -190,7 +190,20 @@ ta.taskAction = function(filepath, itemLineNum, action)
         if common.isTodoItem(taskType) and action == "cancel" then
             local newTaskStr = lineContent:gsub("TODO:","CANCELLED:")
             fileLines[itemLineNum] = newTaskStr
+            --Save new modified lines back to the file
+            local writeFile = io.open(filepath, "w")
+            if not writeFile then
+                print("Could not open file for writing: " .. filepath)
+                return
+            end
+            writeFile:write(table.concat(fileLines, "\n") .. "\n")
+            writeFile:close()
+            --Reload the buffer if the modified file is the current buffer
+            local currentBufPath = vim.api.nvim_buf_get_name(vim.api.nvim_get_current_buf())
+            if currentBufPath == filepath then vim.cmd("edit") end
+
             return
+
         elseif (not common.isTodoItem(taskType)) and action == "cancel" then
             print("Can't cancel tasks other than TODO.")
             return

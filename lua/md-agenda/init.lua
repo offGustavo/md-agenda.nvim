@@ -15,10 +15,6 @@ local function setup(opts)
     vim.api.nvim_create_user_command('TaskScheduled', function()insertDate.dateSelector("scheduled")end, {})
     vim.api.nvim_create_user_command('TaskDeadline', function()insertDate.dateSelector("deadline")end, {})
 
-    --Check Task
-    vim.api.nvim_create_user_command('CheckTask', function()checkTask.checkTask("")end, {})
-    vim.api.nvim_create_user_command("CancelTask", function()checkTask.checkTask("cancel")end, {})
-
     --Agenda View
     vim.api.nvim_create_user_command('AgendaView',agendaView.agendaView, {})
     vim.api.nvim_create_user_command('AgendaViewWTF', function(avOpts)agendaView.agendaViewWTF(avOpts)end, {nargs = '*'})
@@ -30,6 +26,23 @@ local function setup(opts)
 
     --Agenda Dashboard
     vim.api.nvim_create_user_command('AgendaDashboard', agendaDashboard.renderAgendaDashboard, {})
+
+    vim.api.nvim_create_autocmd("FileType", {
+        pattern = "markdown",
+        callback = function()
+
+            vim.opt.foldmethod="marker"
+            vim.opt.foldmarker = config.config.foldmarker
+
+            --Check Task -- (Modify the current buffer and the current line in markdown documents. This changes in the view buffers.)
+            vim.api.nvim_buf_create_user_command(0, 'CheckTask', function()
+                checkTask.taskAction(vim.api.nvim_buf_get_name(0), vim.api.nvim_win_get_cursor(0)[1], "check")
+            end, {})
+            vim.api.nvim_buf_create_user_command(0, 'CancelTask', function()
+                checkTask.taskAction(vim.api.nvim_buf_get_name(0), vim.api.nvim_win_get_cursor(0)[1], "cancel")
+            end, {})
+        end,
+    })
 
     for _,m in ipairs(vim.fn.getmatches()) do
         if m.group == "todoType" or
@@ -70,15 +83,6 @@ local function setup(opts)
         vim.cmd("highlight "..customType.." guifg="..itsColor.." ctermfg="..itsColor)
         vim.cmd("call matchadd('"..customType.."', '"..customType.."')")
     end
-
-    vim.api.nvim_create_autocmd("FileType", {
-        pattern = "markdown",
-        callback = function()
-
-            vim.opt.foldmethod="marker"
-            vim.opt.foldmarker = config.config.foldmarker
-        end,
-    })
 
 end
 
