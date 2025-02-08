@@ -72,6 +72,14 @@ local function getAgendaTasks(startTimeUnix, endTimeUnix)
     local currentDayStart = os.time(currentDateTable)
 
     local sortedDates = {}
+    --[[days = {
+        2004-02-01={
+            {filepath1, lineNum1, itemText1},
+            {filepath2, lineNum2, itemText2},
+            ...
+        },
+        ...
+    }]]
     local days = {}
 
     local i = 0
@@ -81,7 +89,7 @@ local function getAgendaTasks(startTimeUnix, endTimeUnix)
         end
 
         local nextDate = os.date("%Y-%m-%d", startTimeUnix + (i * common.oneDay)) -- Get the date for today + i days
-        days[nextDate]={exists=true, tasks={}}
+        days[nextDate]={}
         table.insert(sortedDates,nextDate)
         i=i+1
     end
@@ -114,16 +122,16 @@ local function getAgendaTasks(startTimeUnix, endTimeUnix)
             --If only Scheduled time exists
             if agendaItem.properties["Scheduled"] and (not agendaItem.properties["Deadline"]) then
                 local scheduledDate = agendaItem.properties["Scheduled"]:match("([0-9]+%-[0-9]+%-[0-9]+)")
-                if days[scheduledDate] and days[scheduledDate]["exists"] then
+                if days[scheduledDate] then
                     --if its info, do not show "Scheduled:" text
                     if agendaItem.agendaItem[1]=="INFO" then
-                        table.insert(days[scheduledDate]["tasks"],
+                        table.insert(days[scheduledDate], {agendaItem.metadata[1], agendaItem.metadata[2],
                             showTimeStrInAgendaItem(agendaItem.properties["Scheduled"])
-                            ..agendaItem.agendaItem[1].." "..agendaItem.agendaItem[2])
+                            ..agendaItem.agendaItem[1].." "..agendaItem.agendaItem[2]})
                     else
-                        table.insert(days[scheduledDate]["tasks"],
+                        table.insert(days[scheduledDate], {agendaItem.metadata[1], agendaItem.metadata[2],
                             "Scheduled: "..showTimeStrInAgendaItem(agendaItem.properties["Scheduled"])..
-                            agendaItem.agendaItem[1].." "..agendaItem.agendaItem[2])
+                            agendaItem.agendaItem[1].." "..agendaItem.agendaItem[2]})
                     end
                 end
 
@@ -132,68 +140,67 @@ local function getAgendaTasks(startTimeUnix, endTimeUnix)
                 if common.isTodoItem(agendaItem.agendaItem[1]) and days[currentDateStr] and (currentDayStart < parsedScheduled["unixTime"]) and
                 (currentDayStart + ((config.config.remindScheduledInDays+1)*common.oneDay) > parsedScheduled["unixTime"]) then
 
-                    table.insert(days[currentDateStr]["tasks"],
+                    table.insert(days[currentDateStr], {agendaItem.metadata[1], agendaItem.metadata[2],
                         agendaItem.agendaItem[1].." "..agendaItem.agendaItem[2]..
-                        " (SC: "..remainingOrPassedDays(currentDateStr, agendaItem.properties["Scheduled"])..")")
+                        " (SC: "..remainingOrPassedDays(currentDateStr, agendaItem.properties["Scheduled"])..")"})
                 end
 
                 --show the task in today until its done, as it has a scheduled date but no deadline
                 if common.isTodoItem(agendaItem.agendaItem[1]) and days[currentDateStr] and (parsedScheduled["unixTime"] < currentDayStart) then
-                    table.insert(days[currentDateStr]["tasks"],
+                    table.insert(days[currentDateStr], {agendaItem.metadata[1], agendaItem.metadata[2],
                         agendaItem.agendaItem[1].." "..agendaItem.agendaItem[2]..
-                        " (SC: "..remainingOrPassedDays(currentDateStr, agendaItem.properties["Scheduled"])..")"
-                    )
+                        " (SC: "..remainingOrPassedDays(currentDateStr, agendaItem.properties["Scheduled"])..")"})
                 end
 
             --If only Deadline exists
             elseif (not agendaItem.properties["Scheduled"]) and agendaItem.properties["Deadline"] then
                 --insert text to deadline
                 local deadlineDate = agendaItem.properties["Deadline"]:match("([0-9]+%-[0-9]+%-[0-9]+)")
-                if days[deadlineDate] and days[deadlineDate]["exists"] then
-                    table.insert(days[deadlineDate]["tasks"],
+                if days[deadlineDate] then
+                    table.insert(days[deadlineDate], {agendaItem.metadata[1], agendaItem.metadata[2],
                         "Deadline: "..showTimeStrInAgendaItem(agendaItem.properties["Deadline"])..
-                        agendaItem.agendaItem[1].." "..agendaItem.agendaItem[2])
+                        agendaItem.agendaItem[1].." "..agendaItem.agendaItem[2]})
                 end
                 --insert text to current date if the current date is close to task deadline by n days
                 --also if current date is not higher than the task deadline originally
                 if common.isTodoItem(agendaItem.agendaItem[1]) and days[currentDateStr] and (currentDayStart < parsedDeadline["unixTime"]) and
                 (currentDayStart + ((config.config.remindDeadlineInDays+1)*common.oneDay) > parsedDeadline["unixTime"]) then
 
-                    table.insert(days[currentDateStr]["tasks"],
+                    table.insert(days[currentDateStr], {agendaItem.metadata[1], agendaItem.metadata[2],
                         agendaItem.agendaItem[1].." "..agendaItem.agendaItem[2]..
-                        " (DL: "..remainingOrPassedDays(currentDateStr, agendaItem.properties["Deadline"])..")")
+                        " (DL: "..remainingOrPassedDays(currentDateStr, agendaItem.properties["Deadline"])..")"})
                 end
 
             --If both Scheduled and Deadline do exist
             elseif agendaItem.properties["Scheduled"] and agendaItem.properties["Deadline"] then
                 --insert text to scheduled date
                 local scheduledDate=agendaItem.properties["Scheduled"]:match("([0-9]+%-[0-9]+%-[0-9]+)")
-                if days[scheduledDate] and days[scheduledDate]["exists"] then
+                if days[scheduledDate] then
                     if agendaItem.agendaItem[1] == "INFO" then
-                        table.insert(days[scheduledDate]["tasks"],
+                        table.insert(days[scheduledDate], {agendaItem.metadata[1], agendaItem.metadata[2],
                             agendaItem.agendaItem[1].." "..agendaItem.agendaItem[2]..
-                            " (DL: "..remainingOrPassedDays(scheduledDate, agendaItem.properties["Deadline"])..")")
+                            " (DL: "..remainingOrPassedDays(scheduledDate, agendaItem.properties["Deadline"])..")"})
                     else
-                        table.insert(days[scheduledDate]["tasks"],
+                        table.insert(days[scheduledDate], {agendaItem.metadata[1], agendaItem.metadata[2],
                             "Scheduled: "..agendaItem.agendaItem[1].." "..agendaItem.agendaItem[2]..
-                            " (DL: "..remainingOrPassedDays(scheduledDate, agendaItem.properties["Deadline"])..")")
+                            " (DL: "..remainingOrPassedDays(scheduledDate, agendaItem.properties["Deadline"])..")"})
                     end
                 end
                 --insert text to deadline date
                 local deadlineDate=agendaItem.properties["Deadline"]:match("([0-9]+%-[0-9]+%-[0-9]+)")
-                if days[deadlineDate] and days[deadlineDate]["exists"] then
-                    table.insert(days[deadlineDate]["tasks"],
+                if days[deadlineDate] then
+                    table.insert(days[deadlineDate], {agendaItem.metadata[1], agendaItem.metadata[2],
                         "Deadline: "..showTimeStrInAgendaItem(agendaItem.properties["Deadline"])..
-                        agendaItem.agendaItem[1].." "..agendaItem.agendaItem[2])
+                        agendaItem.agendaItem[1].." "..agendaItem.agendaItem[2]})
                 end
                 --insert text to current date if its between scheduled and deadline date
                 if common.isTodoItem(agendaItem.agendaItem[1]) and days[currentDateStr] and
                 (currentDayStart < parsedDeadline["unixTime"]) and (parsedScheduled["unixTime"] < currentDayStart) and
                 currentDateStr ~= agendaItem.properties["Deadline"]:match("([0-9]+%-[0-9]+%-[0-9]+)") and
                 currentDateStr ~= agendaItem.properties["Scheduled"]:match("([0-9]+%-[0-9]+%-[0-9]+)") then
-                    table.insert(days[currentDateStr]["tasks"],
+                    table.insert(days[currentDateStr], {agendaItem.metadata[1], agendaItem.metadata[2],
                         agendaItem.agendaItem[1].." "..agendaItem.agendaItem[2]..
-                        " (DL: "..remainingOrPassedDays(currentDateStr, agendaItem.properties["Deadline"])..")")
+                        " (DL: "..remainingOrPassedDays(currentDateStr, agendaItem.properties["Deadline"])..")"})
                 end
 
                 --insert text to current date if the current date is close to task scheduled date by n days
@@ -201,9 +208,9 @@ local function getAgendaTasks(startTimeUnix, endTimeUnix)
                 if common.isTodoItem(agendaItem.agendaItem[1]) and days[currentDateStr] and (currentDayStart < parsedScheduled["unixTime"]) and
                 (currentDayStart + ((config.config.remindScheduledInDays+1)*common.oneDay) > parsedScheduled["unixTime"]) then
 
-                    table.insert(days[currentDateStr]["tasks"],
+                    table.insert(days[currentDateStr], {agendaItem.metadata[1], agendaItem.metadata[2],
                         agendaItem.agendaItem[1].." "..agendaItem.agendaItem[2]..
-                        " (SC: "..remainingOrPassedDays(currentDateStr, agendaItem.properties["Scheduled"])..")")
+                        " (SC: "..remainingOrPassedDays(currentDateStr, agendaItem.properties["Scheduled"])..")"})
                 end
 
             --If not Scheduled nor Deadline exists
@@ -211,8 +218,8 @@ local function getAgendaTasks(startTimeUnix, endTimeUnix)
                 --show the task in today if its not finished
                 if config.config.showNonTimeawareTasksToday and
                 common.isTodoItem(agendaItem.agendaItem[1]) and days[currentDateStr] then
-                    table.insert(days[currentDateStr]["tasks"],
-                        agendaItem.agendaItem[1].." "..agendaItem.agendaItem[2])
+                    table.insert(days[currentDateStr], {agendaItem.metadata[1], agendaItem.metadata[2],
+                        agendaItem.agendaItem[1].." "..agendaItem.agendaItem[2]})
                 end
             end
 
@@ -233,13 +240,13 @@ local function getAgendaTasks(startTimeUnix, endTimeUnix)
                     agendaItem.properties["Scheduled"]:match("([0-9]+%-[0-9]+%-[0-9]+)") ~= sortedDate then
                         if common.IsDateInRangeOfGivenRepeatingTimeStr(agendaItem.properties["Scheduled"], sortedDate) then
                             if agendaItem.agendaItem[1] == "INFO" then
-                                table.insert(days[sortedDate]["tasks"],
+                                table.insert(days[sortedDate], {agendaItem.metadata[1], agendaItem.metadata[2],
                                     showTimeStrInAgendaItem(agendaItem.properties["Scheduled"])..
-                                    agendaItem.agendaItem[1].." "..agendaItem.agendaItem[2])
+                                    agendaItem.agendaItem[1].." "..agendaItem.agendaItem[2]})
                             else
-                                table.insert(days[sortedDate]["tasks"],
+                                table.insert(days[sortedDate], {agendaItem.metadata[1], agendaItem.metadata[2],
                                     "Scheduled: "..showTimeStrInAgendaItem(agendaItem.properties["Scheduled"])..
-                                    agendaItem.agendaItem[1].." "..agendaItem.agendaItem[2])
+                                    agendaItem.agendaItem[1].." "..agendaItem.agendaItem[2]})
                             end
                         end
                     end
@@ -256,10 +263,9 @@ local function getAgendaTasks(startTimeUnix, endTimeUnix)
                     if parsedDeadline["unixTime"] <= sdUnixTime and
                     agendaItem.properties["Deadline"]:match("([0-9]+%-[0-9]+%-[0-9]+)") ~= sortedDate then
                         if common.IsDateInRangeOfGivenRepeatingTimeStr(agendaItem.properties["Deadline"], sortedDate) then
-                            table.insert(days[sortedDate]["tasks"],
+                            table.insert(days[sortedDate], {agendaItem.metadata[1], agendaItem.metadata[2],
                                 "Deadline: "..showTimeStrInAgendaItem(agendaItem.properties["Deadline"])..
-                                agendaItem.agendaItem[1].." "..agendaItem.agendaItem[2]
-                            )
+                                agendaItem.agendaItem[1].." "..agendaItem.agendaItem[2]})
                         end
                     end
                 end
@@ -269,9 +275,9 @@ local function getAgendaTasks(startTimeUnix, endTimeUnix)
             if agendaItem.properties["Completion"] then
                 for _,sortedDate in ipairs(sortedDates) do
                     if agendaItem.properties["Completion"]:match("([0-9]+%-[0-9]+%-[0-9]+)") == sortedDate then
-                            table.insert(days[sortedDate]["tasks"],
+                            table.insert(days[sortedDate], {agendaItem.metadata[1], agendaItem.metadata[2],
                                 "Completion: "..showTimeStrInAgendaItem(agendaItem.properties["Completion"])..
-                                agendaItem.agendaItem[1].." "..agendaItem.agendaItem[2])
+                                agendaItem.agendaItem[1].." "..agendaItem.agendaItem[2]})
                     end
                 end
             end
@@ -281,9 +287,9 @@ local function getAgendaTasks(startTimeUnix, endTimeUnix)
                 for logbookDate,logbookItem in pairs(agendaItem.logbookItems) do
                     for _,sortedDate in ipairs(sortedDates) do
                         if logbookDate == sortedDate then
-                            table.insert(days[sortedDate]["tasks"],
+                            table.insert(days[sortedDate], {agendaItem.metadata[1], agendaItem.metadata[2],
                                 "Repeat: "..showTimeStrInAgendaItem(logbookItem[2])..
-                                agendaItem.agendaItem[1].." "..agendaItem.agendaItem[2])
+                                agendaItem.agendaItem[1].." "..agendaItem.agendaItem[2]})
                         end
                     end
                 end
@@ -383,8 +389,8 @@ local function renderAgendaView()
             table.insert(renderLines, "- "..humanDate)
         end
 
-        for _,taskStr in ipairs(dayNTasks[2][dateStr]["tasks"]) do
-            table.insert(renderLines, "  "..taskStr)
+        for _,taskInfo in ipairs(dayNTasks[2][dateStr]) do
+            table.insert(renderLines, "  "..taskInfo[3])
         end
 
     end
