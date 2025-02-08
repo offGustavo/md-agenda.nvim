@@ -240,43 +240,45 @@ common.parseTaskTime = function(timeString)
         --TODO FIX: If today's time is higher than 00:00, instead of scheduleding today, it schedules to tommorow.
         if repeatType=="++" and taskTimeMap["nextUnixTime"] < currentUnixTime then
                 local taskDateWithDetails = os.date("*t", taskUnixTime)
+                --start the nextUnixTime from today.
+                taskTimeMap["nextUnixTime"] = currentUnixTime
                 while true do
-                    local nextUnixTime = taskTimeMap["nextUnixTime"] + common.oneDay
-                    taskTimeMap["nextUnixTime"] = nextUnixTime
-
                     if currentUnixTime < taskTimeMap["nextUnixTime"] then
                         if repeatInterval=="d" then
                             break
 
                         elseif repeatInterval=="w" then
-                            if taskDateWithDetails.wday == os.date("*t",nextUnixTime).wday then
+                            if taskDateWithDetails.wday == os.date("*t", taskTimeMap["nextUnixTime"]).wday then
                                 break
                             end
 
                         elseif repeatInterval=="m" then
-                            if taskDateWithDetails.day == os.date("*t",nextUnixTime).day then
+                            if taskDateWithDetails.day == os.date("*t", taskTimeMap["nextUnixTime"]).day then
                                 break
                             end
 
                         elseif repeatInterval=="y" then
-                            if taskDateWithDetails.month == os.date("*t",nextUnixTime).month and
-                            taskDateWithDetails.day == os.date("*t",nextUnixTime).day then
+                            if taskDateWithDetails.month == os.date("*t", taskTimeMap["nextUnixTime"]).month and
+                            taskDateWithDetails.day == os.date("*t", taskTimeMap["nextUnixTime"]).day then
                                 break
                             end
 
                         elseif repeatInterval=="x" or repeatInterval=="z" then
-                            if taskDateWithDetails.year < os.date("*t",nextUnixTime).year and
-                            taskDateWithDetails.wday == os.date("*t",nextUnixTime).wday and
-                            taskDateWithDetails.month == os.date("*t",nextUnixTime).month then
+                            if taskDateWithDetails.year < os.date("*t", taskTimeMap["nextUnixTime"]).year and
+                            taskDateWithDetails.wday == os.date("*t", taskTimeMap["nextUnixTime"]).wday and
+                            taskDateWithDetails.month == os.date("*t", taskTimeMap["nextUnixTime"]).month then
                                 if repeatInterval=="x" and
-                                getWeekdayOccurenceCountInMonthUntilGivenDate(1,nextUnixTime) == getWeekdayOccurenceCountInMonthUntilGivenDate(1,taskUnixTime) then
+                                getWeekdayOccurenceCountInMonthUntilGivenDate(1, taskTimeMap["nextUnixTime"]) == getWeekdayOccurenceCountInMonthUntilGivenDate(1,taskUnixTime) then
                                     break
                                 elseif repeatInterval=="z" and
-                                getWeekdayOccurenceCountInMonthUntilGivenDate(-1,nextUnixTime) == getWeekdayOccurenceCountInMonthUntilGivenDate(-1,taskUnixTime) then
+                                getWeekdayOccurenceCountInMonthUntilGivenDate(-1, taskTimeMap["nextUnixTime"]) == getWeekdayOccurenceCountInMonthUntilGivenDate(-1,taskUnixTime) then
                                     break
                                 end
                             end
                         end
+
+                        local nextUnixTime = taskTimeMap["nextUnixTime"] + common.oneDay
+                        taskTimeMap["nextUnixTime"] = nextUnixTime
                     end
                 end
         end
