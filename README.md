@@ -92,6 +92,7 @@ Markdown time and task management plugin for NeoVim, inspired by org-agenda.
 ## Roadmap
 - Use a custom function for folding instead of markers. (help needed, low priority)
 - Update the parent task's progress indicator and type if a sub task is done. (medium priority)
+- Interactive views. (high priority)
 ***
 
 ## Agenda Item Structure
@@ -251,7 +252,7 @@ For grouping and displaying agenda items by filters in one page buffer.
 | <span style="color:gray">**Gray**</span> | If the deadline is on that time. |
 
 ### Date Selection
-Upon running one of the date selection commands, a date selection buffer will appear. You can navigate back and forth using right and left arrow keys.
+Upon running one of the date selection commands, a date selection buffer will appear. You can navigate back and forth using right and left arrow keys. To insert the date, press enter.
 
 | Command | Description |
 | - | - |

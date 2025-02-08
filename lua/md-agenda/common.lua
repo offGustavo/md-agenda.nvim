@@ -461,6 +461,46 @@ common.addPropertyToBufTask = function(taskLineNum, key, value)
     end
 end
 
+common.addPropertyToItem = function(filepath, itemLineNum, key, value)
+    -- Read the lines from the specified file
+    local file = io.open(filepath, "r")
+    if not file then
+        print("Could not open file: " .. filepath)
+        return
+    end
+
+    local fileLines = {}
+    for line in file:lines() do
+        table.insert(fileLines, line)
+    end
+    file:close()
+
+    local taskProperties = common.getTaskProperties(fileLines, itemLineNum, true)
+
+    -- If it exists, update
+    if taskProperties[key] then
+        local propertyLineNum = taskProperties[key][1]
+        fileLines[propertyLineNum] = string.format("- %s: `%s`", key, value)
+
+    -- If it does not exist, create
+    else
+        local newProperty = string.format("- %s: `%s`", key, value)
+        table.insert(fileLines, itemLineNum + 1, newProperty)
+    end
+
+    -- Write the modified lines back to the file
+    file = io.open(filepath, "w")
+    if not file then
+        print("Could not open file for writing: " .. filepath)
+        return
+    end
+
+    for _, line in ipairs(fileLines) do
+        file:write(line .. "\n")
+    end
+    file:close()
+end
+
 --------------SAVE TO THE LOGBOOK---------------
 common.saveToLogbook = function(taskLineNum, logStr)
     local lineNum = taskLineNum+1
@@ -497,7 +537,7 @@ common.saveToLogbook = function(taskLineNum, logStr)
     --if logbook does not found, create one and insert the logStr
     else
         --insert below properties
-        local properties = common.getTaskProperties(currentBufLines, taskLineNum)
+        local properties = common.getTaskProperties(currentBufLines, taskLineNum, true)
         local propertyCount = common.getMapItemCount(properties)
 
         local newLines = {}
@@ -512,6 +552,79 @@ common.saveToLogbook = function(taskLineNum, logStr)
     end
 
     vim.api.nvim_buf_set_lines(currentBuf, 0, -1, false, currentBufLines)
+end
+
+--New function that uses given filepath instead of the current buffer.
+common.addToItemLogbook = function(filepath, itemLineNum, logStr)
+    local lineNum = itemLineNum+1
+
+    local logbookExists = false
+    local logbookStart=0
+
+    -- Read the lines from the specified file
+    local file = io.open(filepath, "r")
+    if not file then
+        print("Could not open file: " .. filepath)
+        return
+    end
+
+    local fileLines = {}
+    for line in file:lines() do
+        table.insert(fileLines, line)
+    end
+    file:close()
+
+    --determine if the task has a logbook
+    while true do
+        local lineContent = fileLines[lineNum]
+
+        --if reached to another header or end of the file, stop
+        if #fileLines < lineNum or lineContent:match(" *#+") then
+            break
+        end
+
+        if lineContent:match(".*<details logbook>") then
+            logbookStart = lineNum
+            logbookExists = true
+            break
+
+        end
+
+        lineNum=lineNum+1
+    end
+
+    if logbookExists then
+        --there must be a line space between <details logbook> html tag and markdown. So we put new markdown log to two line under the details tag
+        table.insert(fileLines, logbookStart+2, "  "..logStr)
+
+    --if logbook does not found, create one and insert the logStr
+    else
+        --insert below properties
+        local properties = common.getTaskProperties(fileLines, itemLineNum, true)
+        local propertyCount = common.getMapItemCount(properties)
+
+        local newLines = {}
+        table.insert(newLines, "<details logbook><!--"..common.splitFoldmarkerString()[1].."-->")
+        table.insert(newLines, "")
+        table.insert(newLines, "  "..logStr)
+        table.insert(newLines, "<!--"..common.splitFoldmarkerString()[2].."--></details>")
+
+        for i, newLine in ipairs(newLines) do
+            table.insert(fileLines, itemLineNum + propertyCount + i, newLine)
+        end
+    end
+
+    -- Write the modified lines back to the file
+    file = io.open(filepath, "w")
+    if not file then
+        print("Could not open file for writing: " .. filepath)
+        return
+    end
+
+    for _, line in ipairs(fileLines) do
+        file:write(line .. "\n")
+    end
+    file:close()
 end
 
 ---------------GET LOGBOOK ENTRIES---------------
