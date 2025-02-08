@@ -213,7 +213,14 @@ local function getGroupsAndItems()
     local currentTime = os.time()
     local currentDateStr = os.date("%Y-%m-%d", currentTime)
 
-    --{{groupName, {itemText1, itemText2}}}
+    --[[{
+        {groupName, {
+            {filepath, linenum, itemText1},
+            {filepath, linenum, itemText2},
+            ...
+        }},
+        ...
+    }]]
     local groupsAndItems = {}
 
     if not config.config.dashboardOrder then
@@ -314,7 +321,7 @@ local function getGroupsAndItems()
                     itemText = agendaItem.agendaItem[1].." "..agendaItem.agendaItem[2]
                 end
 
-                table.insert(groupItems, itemText)
+                table.insert(groupItems, {agendaItem.metadata[1], agendaItem.metadata[2], itemText})
             end
         end
 
@@ -382,7 +389,7 @@ agendaDashboard.renderAgendaDashboard = function()
         table.insert(renderLines, "- "..group[1])
 
         for _, item in ipairs(group[2]) do
-            table.insert(renderLines, "  "..item)
+            table.insert(renderLines, "  "..item[3])
         end
     end
 
