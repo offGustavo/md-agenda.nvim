@@ -108,7 +108,7 @@ Markdown time and task management plugin for NeoVim, inspired by org-agenda.
 | **DUE** | When a task is completed after the given deadline, it's type changes to DUE. |
 | **CANCELLED** | When a TODO task is cancelled, it's type changes to CANCELLED |
 
-> [!INFO]
+> [!TIP]
 > You can also use custom item types instead of **TODO**,
 > with the **customTodoTypes** configuration.
 
@@ -196,7 +196,7 @@ A Progress indicator is splitted into two parts. The **progress (x)** and the **
 | `:CheckTask` | Check the item by placing the cursor on it. |
 | `:CancelTask` | If its **TODO**, change the item type to **CANCELLED** |
 
-> [!INFO]
+> [!TIP]
 > You can also check tasks from the view buffers.
 
 
