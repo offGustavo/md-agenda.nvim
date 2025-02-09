@@ -2,6 +2,8 @@ local config = require("md-agenda.config")
 
 local common = require("md-agenda.common")
 
+local taskAction = require("md-agenda.checkTask")
+
 local vim = vim
 
 local agendaView = {}
@@ -304,6 +306,9 @@ end
 
 local relativePage = 0
 local function renderAgendaView()
+    --To refresh the previous buffer's content. (The buffer that is focused before the view buffer)
+    local prevBufferNum = vim.api.nvim_get_current_buf()
+
     vim.cmd("new")
 
     local bufNumber = vim.api.nvim_get_current_buf()
@@ -350,6 +355,8 @@ local function renderAgendaView()
         vim.cmd("syntax match "..customType.." /"..customType.."/")
     end
 
+    local lineItemMetadataMap = {} --For interacting with tasks.
+
     local renderLines = {}
 
     -- Get the current date and time
@@ -368,6 +375,7 @@ local function renderAgendaView()
 
     local dayNTasks = getAgendaTasks(pageStart, pageEnd)
 
+    local currentLine = 1
     table.insert(renderLines, "Agenda View - Page: "..relativePage)
 
     for _,dateStr in ipairs(dayNTasks[1]) do
@@ -384,6 +392,7 @@ local function renderAgendaView()
         local dayUnixTime = os.time(taskTimeTable)
         local humanDate = os.date("%d %B(%m) %Y - %A",dayUnixTime)
 
+        currentLine = currentLine + 1
         if currentDateStr == dateStr then
             table.insert(renderLines, "- (Today) "..humanDate)
         else
@@ -391,6 +400,8 @@ local function renderAgendaView()
         end
 
         for _,taskInfo in ipairs(dayNTasks[2][dateStr]) do
+            currentLine = currentLine + 1
+            lineItemMetadataMap[currentLine]={taskInfo[1], taskInfo[2]}
             table.insert(renderLines, "  "..taskInfo[3])
         end
 
@@ -417,6 +428,33 @@ local function renderAgendaView()
 
     vim.keymap.set('n', '<Esc>', function()vim.cmd('bd')
     end, { buffer = bufNumber, noremap = true, silent = true })
+
+    --Task checking command
+    vim.api.nvim_buf_create_user_command(0, 'CheckTask', function()
+        local cursorLineNum = vim.api.nvim_win_get_cursor(0)[1]
+        if lineItemMetadataMap[cursorLineNum] then
+            taskAction.taskAction(lineItemMetadataMap[cursorLineNum][1], lineItemMetadataMap[cursorLineNum][2], "check", prevBufferNum)
+            --After the check, renew the cache and refresh the view
+            agendaItemsCache = common.getAgendaItems("")
+            vim.cmd('bd')
+            renderAgendaView()
+        else
+            print("To check an item, place your cursor to the agenda item and rerun this command.")
+        end
+    end, {})
+    --Task cancel command
+    vim.api.nvim_buf_create_user_command(0, 'CancelTask', function()
+        local cursorLineNum = vim.api.nvim_win_get_cursor(0)[1]
+        if lineItemMetadataMap[cursorLineNum] then
+            taskAction.taskAction(lineItemMetadataMap[cursorLineNum][1], lineItemMetadataMap[cursorLineNum][2], "cancel", prevBufferNum)
+            --After the cancel, renew the cache and refresh the view
+            agendaItemsCache = common.getAgendaItems("")
+            vim.cmd('bd')
+            renderAgendaView()
+        else
+            print("To check an item, place your cursor to the agenda item and rerun this command.")
+        end
+    end, {})
 end
 
 agendaView.agendaView = function()

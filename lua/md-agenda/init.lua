@@ -55,10 +55,12 @@ local function setup(opts)
 
             --Check Task -- (Modify the current buffer and the current line in markdown documents. This changes in the view buffers.)
             vim.api.nvim_buf_create_user_command(0, 'CheckTask', function()
-                checkTask.taskAction(vim.api.nvim_buf_get_name(0), vim.api.nvim_win_get_cursor(0)[1], "check")
+                local currentBufNum = vim.api.nvim_get_current_buf()
+                checkTask.taskAction(vim.api.nvim_buf_get_name(0), vim.api.nvim_win_get_cursor(0)[1], "check", currentBufNum)
             end, {})
             vim.api.nvim_buf_create_user_command(0, 'CancelTask', function()
-                checkTask.taskAction(vim.api.nvim_buf_get_name(0), vim.api.nvim_win_get_cursor(0)[1], "cancel")
+                local currentBufNum = vim.api.nvim_get_current_buf()
+                checkTask.taskAction(vim.api.nvim_buf_get_name(0), vim.api.nvim_win_get_cursor(0)[1], "cancel", currentBufNum)
             end, {})
 
             --Re-highlight for the markdown files

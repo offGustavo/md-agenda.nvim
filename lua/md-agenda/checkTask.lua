@@ -161,7 +161,7 @@ ta.checkTask = function(checkAction)
 end
 
 --action: "cancel" or "check"
-ta.taskAction = function(filepath, itemLineNum, action)
+ta.taskAction = function(filepath, itemLineNum, action, bufferRefreshNum)
     -- Read the lines from the specified file
     local readFile = io.open(filepath, "r")
     if not readFile then
@@ -197,9 +197,10 @@ ta.taskAction = function(filepath, itemLineNum, action)
             end
             writeFile:write(table.concat(fileLines, "\n") .. "\n")
             writeFile:close()
-            --Reload the buffer if the modified file is the current buffer
-            local currentBufPath = vim.api.nvim_buf_get_name(vim.api.nvim_get_current_buf())
-            if currentBufPath == filepath then vim.cmd("edit") end
+            --Refresh the given buffer's content
+            if bufferRefreshNum and vim.api.nvim_buf_is_valid(bufferRefreshNum) then
+                vim.cmd("checktime "..tostring(bufferRefreshNum))
+            end
 
             return
 
@@ -344,10 +345,9 @@ ta.taskAction = function(filepath, itemLineNum, action)
         writeFile:write(table.concat(fileLines, "\n") .. "\n")
         writeFile:close()
 
-        --Reload the buffer if the modified file is the current buffer
-        local currentBufPath = vim.api.nvim_buf_get_name(vim.api.nvim_get_current_buf())
-        if currentBufPath == filepath then
-             vim.cmd("edit")
+        --Refresh the given buffer's content
+        if bufferRefreshNum and vim.api.nvim_buf_is_valid(bufferRefreshNum) then
+            vim.cmd("checktime "..tostring(bufferRefreshNum))
         end
     end
 end

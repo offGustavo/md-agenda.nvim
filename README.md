@@ -92,7 +92,7 @@ Markdown time and task management plugin for NeoVim, inspired by org-agenda.
 ## Roadmap
 - Use a custom function for folding instead of markers. (help needed, low priority)
 - Update the parent task's progress indicator and type if a sub task is done. (medium priority)
-- Interactive views. (high priority)
+- If the item type is INFO, show a reminder for today if the next scheduled date is close and current date is after than the scheduled date. (medium priority)
 ***
 
 ## Agenda Item Structure
@@ -106,9 +106,11 @@ Markdown time and task management plugin for NeoVim, inspired by org-agenda.
 | **INFO** | Just for viewing important events in the agenda view. |
 | **DONE** | When a task is completed in time, it's type changes to DONE. |
 | **DUE** | When a task is completed after the given deadline, it's type changes to DUE. |
-| **CANCELLED** | When a TODO task is cancelled, it's type changes to CANCELLED (You're kidding! 😱) |
+| **CANCELLED** | When a TODO task is cancelled, it's type changes to CANCELLED |
 
-- You can also use custom item types instead of **TODO** with **customTodoTypes** configuration.
+> [!INFO]
+> You can also use custom item types instead of **TODO**,
+> with the **customTodoTypes** configuration.
 
 **Here are some example agenda items to understand their structure better:**
 ```md
@@ -156,7 +158,8 @@ Markdown time and task management plugin for NeoVim, inspired by org-agenda.
 ### Repeating Tasks
 **To make an item repeated**, you should add **the repeat indicator** at the end of the **Deadline** or **Scheduled** property.
 
-<mark>**You cannot add the repeat indicator to both of them at the same task.**</mark>
+> [!WARNING] 
+> **You cannot add the repeat indicator to both of them in the same task.**
 
 | Repeat Indicator Type | Description |
 | :-: | - |
@@ -193,11 +196,16 @@ A Progress indicator is splitted into two parts. The **progress (x)** and the **
 | `:CheckTask` | Check the item by placing the cursor on it. |
 | `:CancelTask` | If its **TODO**, change the item type to **CANCELLED** |
 
-<mark>**Items cannot be checked when:**</mark>
-1. The task is malformed.
-2. The time in **Scheduled** property did not arrive.
-3. The item type is not **TODO** or **HABIT**.
-4. Repeating task has a **progress indicator** with a **zero** progress.
+> [!INFO]
+> You can also check tasks from the view buffers.
+
+
+> [!WARNING]
+> **Items cannot be checked when:**
+> 1. The task is malformed.
+> 2. The time in **Scheduled** property did not arrive.
+> 3. The item type is not **TODO** or **HABIT**.
+> 4. Repeating task has a **progress indicator** with a **zero** progress.
 
 **If the agenda item has a repeat indicator**;
 - the completed task is directly saved to the logbook without any change on the task type.
@@ -243,13 +251,13 @@ For grouping and displaying agenda items by filters in one page buffer.
 
 | Color | Condition|
 | - | - |
-| <span style="color:yellow">**Yellow**</span> | If the task is scheduled on that time. Also, If the habit is scheduled in the past but has not been made, today is shown in yellow. |
-| <span style="color:#DEC20B">**Dark Yellow**</span> | The passed scheduled date. |
-| <span style="color:blue">**Blue**</span> | If you do not have to do the task on that time. |
-| <span style="color:green">**Green**</span> | If the task is done on that day. |
-| <span style="color:lightgreen">**Light Green**</span> | If progress had been made but the task was not done. |
-| <span style="color:red">**Red**</span> | If the task had to be done that day but it was not. |
-| <span style="color:gray">**Gray**</span> | If the deadline is on that time. |
+| **Yellow** | If the task is scheduled on that time. Also, If the habit is scheduled in the past but has not been made, today is shown in yellow. |
+| **Dark Yellow** | The passed scheduled date. |
+| **Blue** | If you do not have to do the task on that time. |
+| **Green** | If the task is done on that day. |
+| **Light Green** | If progress had been made but the task was not done. |
+| **Red** | If the task had to be done that day but it was not. |
+| **Gray** | If the deadline is on that time. |
 
 ### Date Selection
 Upon running one of the date selection commands, a date selection buffer will appear. You can navigate back and forth using right and left arrow keys. To insert the date, press enter.

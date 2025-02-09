@@ -2,6 +2,8 @@ local config = require("md-agenda.config")
 
 local common = require("md-agenda.common")
 
+local taskAction = require("md-agenda.checkTask")
+
 local vim = vim
 
 local habitView = {}
@@ -119,6 +121,9 @@ end
 
 --type is habit or agenda
 habitView.renderHabitView = function()
+    --To refresh the previous buffer's content. (The buffer that is focused before the view buffer)
+    local prevBufferNum = vim.api.nvim_get_current_buf()
+
     vim.cmd("new")
 
     local bufNumber = vim.api.nvim_get_current_buf()
@@ -151,6 +156,8 @@ habitView.renderHabitView = function()
     vim.cmd("syntax match tag /\\#[a-zA-Z0-9]\\+/")
     vim.cmd("syntax match tag /:[a-zA-Z0-9:]\\+:/")
 
+    local lineItemMetadataMap = {}
+
     local renderLines = {}
 
     local currentDateTable = os.date("*t")
@@ -162,6 +169,8 @@ habitView.renderHabitView = function()
     --{sortedDates, habits}
     local dayNHabits = getHabitTasks(currentDayStart-common.oneDay*config.config.habitViewPastItems, currentDayStart+common.oneDay*config.config.habitViewFutureItems)
 
+    local currentLine = 1
+    table.insert(renderLines, "Habit View")
     --today guide line
     local guideLine = ""
     for _,dateStr in ipairs(dayNHabits[1]) do
@@ -172,16 +181,21 @@ habitView.renderHabitView = function()
             guideLine=guideLine.."-"
         end
     end
+    currentLine = currentLine + 1
     table.insert(renderLines, guideLine)
 
     --habits
     for _,habit in ipairs(dayNHabits[2]) do
+        currentLine = currentLine + 1
+        lineItemMetadataMap[currentLine] = {habit.metadata[1], habit.metadata[2]}
         table.insert(renderLines, habit.habit)
 
         local consistencyGraph = ""
         for _,dateStr in ipairs(dayNHabits[1]) do
             consistencyGraph = consistencyGraph .. habit.days[dateStr]
         end
+        currentLine = currentLine + 1
+        lineItemMetadataMap[currentLine] = {habit.metadata[1], habit.metadata[2]}
         table.insert(renderLines, consistencyGraph)
         --table.insert(renderLines, "")
     end
@@ -195,6 +209,31 @@ habitView.renderHabitView = function()
 
     vim.keymap.set('n', '<Esc>', function()vim.cmd('bd')
     end, { buffer = bufNumber, noremap = true, silent = true })
+
+    --Task checking command
+    vim.api.nvim_buf_create_user_command(0, 'CheckTask', function()
+        local cursorLineNum = vim.api.nvim_win_get_cursor(0)[1]
+        if lineItemMetadataMap[cursorLineNum] then
+            taskAction.taskAction(lineItemMetadataMap[cursorLineNum][1], lineItemMetadataMap[cursorLineNum][2], "check", prevBufferNum)
+            --After the check, refresh the view
+            vim.cmd('bd')
+            habitView.renderHabitView()
+        else
+            print("To check an item, place your cursor to the agenda item and rerun this command.")
+        end
+    end, {})
+    --Task cancel command -- This is unnecessary for the habit view as we cannot cancel them. I added this for the sake of consistency.
+    vim.api.nvim_buf_create_user_command(0, 'CancelTask', function()
+        local cursorLineNum = vim.api.nvim_win_get_cursor(0)[1]
+        if lineItemMetadataMap[cursorLineNum] then
+            taskAction.taskAction(lineItemMetadataMap[cursorLineNum][1], lineItemMetadataMap[cursorLineNum][2], "cancel", prevBufferNum)
+            --After the cancel, refresh the view
+            vim.cmd('bd')
+            habitView.renderHabitView()
+        else
+            print("To check an item, place your cursor to the agenda item and rerun this command.")
+        end
+    end, {})
 end
 
 return habitView

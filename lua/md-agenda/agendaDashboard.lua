@@ -2,6 +2,8 @@ local config = require("md-agenda.config")
 
 local common = require("md-agenda.common")
 
+local taskAction = require("md-agenda.checkTask")
+
 local vim = vim
 
 local agendaDashboard = {}
@@ -335,6 +337,9 @@ local function getGroupsAndItems()
 end
 
 agendaDashboard.renderAgendaDashboard = function()
+    --To refresh the previous buffer's content. (The buffer that is focused before the view buffer)
+    local prevBufferNum = vim.api.nvim_get_current_buf()
+
     vim.cmd("new")
 
     local bufNumber = vim.api.nvim_get_current_buf()
@@ -381,14 +386,22 @@ agendaDashboard.renderAgendaDashboard = function()
         vim.cmd("syntax match done /"..customType.."/")
     end
 
+    local lineItemMetadataMap = {}
+
     local renderLines = {}
+
+    local currentLine = 1
+    table.insert(renderLines, "Agenda Dashboard")
 
     local groupsAndItems = getGroupsAndItems()
 
     for _, group in ipairs(groupsAndItems) do
+        currentLine = currentLine + 1
         table.insert(renderLines, "- "..group[1])
 
         for _, item in ipairs(group[2]) do
+            currentLine = currentLine + 1
+            lineItemMetadataMap[currentLine]={item[1], item[2]}
             table.insert(renderLines, "  "..item[3])
         end
     end
@@ -402,6 +415,31 @@ agendaDashboard.renderAgendaDashboard = function()
 
     vim.keymap.set('n', '<Esc>', function()vim.cmd('bd')
     end, { buffer = bufNumber, noremap = true, silent = true })
+
+    --Task checking command
+    vim.api.nvim_buf_create_user_command(0, 'CheckTask', function()
+        local cursorLineNum = vim.api.nvim_win_get_cursor(0)[1]
+        if lineItemMetadataMap[cursorLineNum] then
+            taskAction.taskAction(lineItemMetadataMap[cursorLineNum][1], lineItemMetadataMap[cursorLineNum][2], "check", prevBufferNum)
+            --After the check, refresh the view
+            vim.cmd('bd')
+            agendaDashboard.renderAgendaDashboard()
+        else
+            print("To check an item, place your cursor to the agenda item and rerun this command.")
+        end
+    end, {})
+    --Task cancel command
+    vim.api.nvim_buf_create_user_command(0, 'CancelTask', function()
+        local cursorLineNum = vim.api.nvim_win_get_cursor(0)[1]
+        if lineItemMetadataMap[cursorLineNum] then
+            taskAction.taskAction(lineItemMetadataMap[cursorLineNum][1], lineItemMetadataMap[cursorLineNum][2], "cancel", prevBufferNum)
+            --After the cancel, refresh the view
+            vim.cmd('bd')
+            agendaDashboard.renderAgendaDashboard()
+        else
+            print("To check an item, place your cursor to the agenda item and rerun this command.")
+        end
+    end, {})
 end
 
 return agendaDashboard
