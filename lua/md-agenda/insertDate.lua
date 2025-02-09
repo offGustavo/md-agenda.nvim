@@ -43,6 +43,7 @@ local function renderDateSelector(insertType)
     --The Below code is about date selector buffer
 
     vim.cmd("new")
+    vim.cmd("set cursorline")
 
     local bufNumber = vim.api.nvim_get_current_buf()
 

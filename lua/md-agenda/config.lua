@@ -30,11 +30,11 @@ config.initConfig = function(opts)
         },
     }
 
-    config.config.tagColor = opts.tagColor or "blue"
+    config.config.tagColor = opts.tagColor or "gray"
     config.config.titleColor = opts.titleColor or "yellow"
 
     config.config.todoTypeColor = opts.todoTypeColor or "cyan"
-    config.config.habitTypeColor = opts.habitTypeColor or "cyan"
+    config.config.habitTypeColor = opts.habitTypeColor or "lightblue"
     config.config.infoTypeColor = opts.infoTypeColor or "lightgreen"
     config.config.dueTypeColor = opts.dueTypeColor or "red"
     config.config.doneTypeColor = opts.doneTypeColor or "green"

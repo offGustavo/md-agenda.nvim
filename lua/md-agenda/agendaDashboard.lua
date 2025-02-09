@@ -341,6 +341,7 @@ agendaDashboard.renderAgendaDashboard = function()
     local prevBufferNum = vim.api.nvim_get_current_buf()
 
     vim.cmd("new")
+    vim.cmd("set cursorline")
 
     local bufNumber = vim.api.nvim_get_current_buf()
 
