@@ -12,14 +12,18 @@ local function setup(opts)
     local agendaDashboard = require("md-agenda.agendaDashboard")
 
     --Date Picker
-    vim.api.nvim_create_user_command('TaskScheduled', function()insertDate.dateSelector("scheduled")end, {})
-    vim.api.nvim_create_user_command('TaskDeadline', function()insertDate.dateSelector("deadline")end, {})
+    vim.api.nvim_create_user_command('TaskScheduled', function()
+        local currentBufNum = vim.api.nvim_get_current_buf()
+        insertDate.dateSelector(vim.api.nvim_buf_get_name(0),"scheduled",currentBufNum)
+    end, {})
+    vim.api.nvim_create_user_command('TaskDeadline', function()
+        local currentBufNum = vim.api.nvim_get_current_buf()
+        insertDate.dateSelector(vim.api.nvim_buf_get_name(0),"deadline",currentBufNum)
+    end, {})
 
     --Agenda View
     vim.api.nvim_create_user_command('AgendaView',agendaView.agendaView, {})
     vim.api.nvim_create_user_command('AgendaViewWTF', function(avOpts)agendaView.agendaViewWTF(avOpts)end, {nargs = '*'})
-    vim.api.nvim_create_user_command('NextAgendaPage', agendaView.nextAgendaPage, {}) -- deprecated
-    vim.api.nvim_create_user_command('PrevAgendaPage', agendaView.prevAgendaPage, {}) -- deprecated
 
     --Habit View
     vim.api.nvim_create_user_command('HabitView', habitView.renderHabitView, {})

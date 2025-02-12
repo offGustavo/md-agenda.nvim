@@ -33,7 +33,19 @@ local pageItemCount = 15
 local relativePage = 0
 local lineNumValue = {}
 --insertType: deadline or scheduled
-local function renderDateSelector(insertType)
+local function renderDateSelector(filepath, insertType, bufferRefreshNum)
+    -- Read the lines from the specified file
+    local readFile = io.open(filepath, "r")
+    if not readFile then
+        print("Could not open file: " .. filepath)
+        return
+    end
+
+    local fileLines = {}
+    for line in readFile:lines() do
+        table.insert(fileLines, line)
+    end
+    readFile:close()
 
     if not agendaItemlineContent:match("^ *#+ [A-Z]+: .*$") then
         print("You need to place your cursor to the task to add a deadline or scheduled property to it.")
@@ -111,35 +123,65 @@ local function renderDateSelector(insertType)
 
         if insertType=="scheduled" then
             vim.cmd("bd")
-            common.addPropertyToBufTask(agendaItemlineNum, "Scheduled", lineNumValue[dsLineNum])
+            fileLines = common.addPropertyToItem(fileLines, agendaItemlineNum, "Scheduled", lineNumValue[dsLineNum])
+
+            --Save new modified lines back to the file
+            local writeFile = io.open(filepath, "w")
+            if not writeFile then
+                print("Could not open file for writing: " .. filepath)
+                return
+            end
+
+            writeFile:write(table.concat(fileLines, "\n") .. "\n")
+            writeFile:close()
+
+            --Refresh the given buffer's content
+            if bufferRefreshNum and vim.api.nvim_buf_is_valid(bufferRefreshNum) then
+                vim.cmd("checktime "..tostring(bufferRefreshNum))
+            end
 
         elseif insertType=="deadline" then
             vim.cmd("bd")
-            common.addPropertyToBufTask(agendaItemlineNum, "Deadline", lineNumValue[dsLineNum])
+            fileLines = common.addPropertyToItem(fileLines, agendaItemlineNum, "Deadline", lineNumValue[dsLineNum])
+
+            --Save new modified lines back to the file
+            local writeFile = io.open(filepath, "w")
+            if not writeFile then
+                print("Could not open file for writing: " .. filepath)
+                return
+            end
+
+            writeFile:write(table.concat(fileLines, "\n") .. "\n")
+            writeFile:close()
+
+            --Refresh the given buffer's content
+            if bufferRefreshNum and vim.api.nvim_buf_is_valid(bufferRefreshNum) then
+                vim.cmd("checktime "..tostring(bufferRefreshNum))
+            end
         end
     end, { buffer = bufNumber, noremap = true, silent = true })
 
     vim.keymap.set('n', '<Right>', function()
         relativePage=relativePage+1
         vim.cmd('bd')
-        renderDateSelector(insertType)
+        renderDateSelector(filepath, insertType, bufferRefreshNum)
     end, { buffer = bufNumber, noremap = true, silent = true })
 
     vim.keymap.set('n', '<Left>', function()
         relativePage=relativePage-1
         vim.cmd('bd')
-        renderDateSelector(insertType)
+        renderDateSelector(filepath, insertType, bufferRefreshNum)
     end, { buffer = bufNumber, noremap = true, silent = true })
 
     vim.keymap.set('n', '<Esc>', function()vim.cmd('bd')
     end, { buffer = bufNumber, noremap = true, silent = true })
 end
 
-insertDate.dateSelector = function(insertType)
+insertDate.dateSelector = function(filepath, insertType, bufferRefreshNum)
     agendaItemlineNum = vim.api.nvim_win_get_cursor(0)[1]
     agendaItemlineContent = vim.fn.getline(agendaItemlineNum)
     relativePage = 0
-    renderDateSelector(insertType)
+    renderDateSelector(filepath, insertType, bufferRefreshNum)
 end
 
 return insertDate

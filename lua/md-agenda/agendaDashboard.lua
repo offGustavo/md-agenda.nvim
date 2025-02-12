@@ -425,6 +425,7 @@ agendaDashboard.renderAgendaDashboard = function()
             --After the check, refresh the view
             vim.cmd('bd')
             agendaDashboard.renderAgendaDashboard()
+            vim.cmd(tostring(cursorLineNum))
         else
             print("To check an item, place your cursor to the agenda item and rerun this command.")
         end
@@ -437,6 +438,7 @@ agendaDashboard.renderAgendaDashboard = function()
             --After the cancel, refresh the view
             vim.cmd('bd')
             agendaDashboard.renderAgendaDashboard()
+            vim.cmd(tostring(cursorLineNum))
         else
             print("To check an item, place your cursor to the agenda item and rerun this command.")
         end

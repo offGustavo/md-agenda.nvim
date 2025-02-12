@@ -219,6 +219,7 @@ habitView.renderHabitView = function()
             --After the check, refresh the view
             vim.cmd('bd')
             habitView.renderHabitView()
+            vim.cmd(tostring(cursorLineNum))
         else
             print("To check an item, place your cursor to the agenda item and rerun this command.")
         end

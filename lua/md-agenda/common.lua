@@ -282,7 +282,7 @@ common.parseTaskTime = function(timeString)
                 end
         end
 
-        taskTimeMap["nextTimeStr"] = os.date("%Y-%m-%d %H:%M", taskTimeMap["nextUnixTime"]) .." +"..repeatNum..repeatInterval
+        taskTimeMap["nextTimeStr"] = os.date("%Y-%m-%d %H:%M", taskTimeMap["nextUnixTime"]) .." "..repeatType..repeatNum..repeatInterval
     end
 
     return taskTimeMap
@@ -440,27 +440,6 @@ common.getTaskProperties = function(ContentLinesArr, taskLineNum, withLineNum)
     return properities
 end
 
---DEPRECATED
-common.addPropertyToBufTask = function(taskLineNum, key, value)
-    local currentBuf = vim.api.nvim_get_current_buf()
-    local currentBufLines = vim.api.nvim_buf_get_lines(currentBuf, 0, -1, true)
-
-    local taskProperties = common.getTaskProperties(currentBufLines, taskLineNum, true)
-
-    --if it exists, update
-    if taskProperties[key] then
-        local propertyLineNum = taskProperties[key][1]
-        vim.api.nvim_buf_set_lines(0, propertyLineNum-1, propertyLineNum, false, { string.format("- %s: `%s`", key, value) })
-
-    --if it does not exist, create
-    else
-        local newProperty = string.format("- %s: `%s`", key, value)
-
-        table.insert(currentBufLines, taskLineNum+1, newProperty)
-        vim.api.nvim_buf_set_lines(currentBuf, 0, -1, false, currentBufLines)
-    end
-end
-
 --add a new property to the task or update the existing one
 common.addPropertyToItem = function(fileLines, itemLineNum, key, value)
 
@@ -478,59 +457,6 @@ common.addPropertyToItem = function(fileLines, itemLineNum, key, value)
     end
 
     return fileLines
-end
-
----DEPRECATED
-common.saveToLogbook = function(taskLineNum, logStr)
-    local lineNum = taskLineNum+1
-
-    local logbookExists = false
-    local logbookStart=0
-
-    local currentBuf = vim.api.nvim_get_current_buf()
-    local currentBufLines = vim.api.nvim_buf_get_lines(currentBuf, 0, -1, true)
-
-    --determine if the task has a logbook
-    while true do
-        local lineContent = vim.fn.getline(lineNum)
-
-        --if reached to another header or end of the file, stop
-        if #currentBufLines < lineNum or lineContent:match(" *#+") then
-            break
-        end
-
-        if lineContent:match(".*<details logbook>") then
-            logbookStart = lineNum
-            logbookExists = true
-            break
-
-        end
-
-        lineNum=lineNum+1
-    end
-
-    if logbookExists then
-        --there must be a line space between <details logbook> html tag and markdown. So we put new markdown log to two line under the details tag
-        table.insert(currentBufLines, logbookStart+2, "  "..logStr)
-
-    --if logbook does not found, create one and insert the logStr
-    else
-        --insert below properties
-        local properties = common.getTaskProperties(currentBufLines, taskLineNum, true)
-        local propertyCount = common.getMapItemCount(properties)
-
-        local newLines = {}
-        table.insert(newLines, "<details logbook><!--"..common.splitFoldmarkerString()[1].."-->")
-        table.insert(newLines, "")
-        table.insert(newLines, "  "..logStr)
-        table.insert(newLines, "<!--"..common.splitFoldmarkerString()[2].."--></details>")
-
-        for i, newLine in ipairs(newLines) do
-            table.insert(currentBufLines, taskLineNum + propertyCount + i, newLine)
-        end
-    end
-
-    vim.api.nvim_buf_set_lines(currentBuf, 0, -1, false, currentBufLines)
 end
 
 --New function that uses given filepath instead of the current buffer.

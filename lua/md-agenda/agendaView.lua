@@ -439,6 +439,7 @@ local function renderAgendaView()
             agendaItemsCache = common.getAgendaItems("")
             vim.cmd('bd')
             renderAgendaView()
+            vim.cmd(tostring(cursorLineNum))
         else
             print("To check an item, place your cursor to the agenda item and rerun this command.")
         end
@@ -452,6 +453,7 @@ local function renderAgendaView()
             agendaItemsCache = common.getAgendaItems("")
             vim.cmd('bd')
             renderAgendaView()
+            vim.cmd(tostring(cursorLineNum))
         else
             print("To check an item, place your cursor to the agenda item and rerun this command.")
         end
