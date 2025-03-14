@@ -111,7 +111,7 @@ local function getHabitTasks(startTimeUnix, endTimeUnix)
                 end
             end
 
-            --habits={ {metadata={filepath, lineNum}, habit="do bla bla bla", days={2024-04-20="-", 2024-04-21="+", ...}}, ...}
+            --habits={ {metadata={filepath, lineNum}, habit="do bla bla bla", streak=10, days={2024-04-20="-", 2024-04-21="+", ...}}, ...}
             table.insert(habits, {metadata={agendaItem.metadata[1], agendaItem.metadata[2]}, habit=agendaItem.agendaItem[2], days=habitDays})
         end
     end
@@ -195,6 +195,7 @@ habitView.renderHabitView = function()
         for _,dateStr in ipairs(dayNHabits[1]) do
             consistencyGraph = consistencyGraph .. habit.days[dateStr]
         end
+
         currentLine = currentLine + 1
         lineItemMetadataMap[currentLine] = {habit.metadata[1], habit.metadata[2]}
         table.insert(renderLines, consistencyGraph)

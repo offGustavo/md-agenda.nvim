@@ -6,6 +6,13 @@ local ta = {} --task action
 
 --action: "cancel" or "check"
 ta.taskAction = function(filepath, itemLineNum, action, bufferRefreshNum)
+
+	--Check if the given buffer is modified. If so, save the modifications first.
+	if bufferRefreshNum and vim.api.nvim_buf_is_valid(bufferRefreshNum) and
+	vim.api.nvim_buf_get_option(bufferRefreshNum, 'modified') then
+		vim.cmd("b "..bufferRefreshNum.."| w")
+	end
+
     -- Read the lines from the specified file
     local readFile = io.open(filepath, "r")
     if not readFile then
