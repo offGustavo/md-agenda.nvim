@@ -137,10 +137,12 @@ local function getAgendaTasks(startTimeUnix, endTimeUnix)
                     end
                 end
 
-                --insert text to current date for TODO items if the current date is close to the task scheduled date by n days
-                --also if current date is not higher than the task deadline originally
+                --insert text to today if the current date + n days is bigger than the task scheduled,
+                --and if current date is not bigger than the task scheduled.
+				--But, if the scheduled is in the current date, do not insert it.
                 if common.isTodoItem(agendaItem.agendaItem[1]) and days[currentDateStr] and (currentDayStart < parsedScheduled["unixTime"]) and
-                (currentDayStart + ((config.config.remindScheduledInDays+1)*common.oneDay) > parsedScheduled["unixTime"]) then
+                (currentDayStart + ((config.config.remindScheduledInDays+1)*common.oneDay) > parsedScheduled["unixTime"]) and
+				currentDateStr ~= scheduledDate then
 
                     table.insert(days[currentDateStr], {agendaItem.metadata[1], agendaItem.metadata[2],
                         agendaItem.agendaItem[1].." "..agendaItem.agendaItem[2]..
@@ -149,7 +151,8 @@ local function getAgendaTasks(startTimeUnix, endTimeUnix)
 
                 --show the task in today until its done if the current time is higher than the scheduled date.
                 --Because it has a scheduled date but no deadline
-                if common.isTodoItem(agendaItem.agendaItem[1]) and days[currentDateStr] and (parsedScheduled["unixTime"] < currentDayStart) then
+                if common.isTodoItem(agendaItem.agendaItem[1]) and days[currentDateStr] and (parsedScheduled["unixTime"] < currentDayStart) and
+				currentDateStr ~= scheduledDate then
                     table.insert(days[currentDateStr], {agendaItem.metadata[1], agendaItem.metadata[2],
                         agendaItem.agendaItem[1].." "..agendaItem.agendaItem[2]..
                         " (SC: "..remainingOrPassedDays(currentDateStr, agendaItem.properties["Scheduled"])..")"})
@@ -164,10 +167,12 @@ local function getAgendaTasks(startTimeUnix, endTimeUnix)
                         "Deadline: "..showTimeStrInAgendaItem(agendaItem.properties["Deadline"])..
                         agendaItem.agendaItem[1].." "..agendaItem.agendaItem[2]})
                 end
-                --insert text to current date if the current date is close to task deadline by n days
-                --also if current date is not higher than the task deadline originally
+                --insert text to today if the current date + n days is bigger than the task deadline,
+                --and if current date is not bigger than the task deadline.
+				--But, if the deadline is in the current date, do not insert it.
                 if common.isTodoItem(agendaItem.agendaItem[1]) and days[currentDateStr] and (currentDayStart < parsedDeadline["unixTime"]) and
-                (currentDayStart + ((config.config.remindDeadlineInDays+1)*common.oneDay) > parsedDeadline["unixTime"]) then
+                (currentDayStart + ((config.config.remindDeadlineInDays+1)*common.oneDay) > parsedDeadline["unixTime"]) and
+				currentDateStr ~= deadlineDate then
 
                     table.insert(days[currentDateStr], {agendaItem.metadata[1], agendaItem.metadata[2],
                         agendaItem.agendaItem[1].." "..agendaItem.agendaItem[2]..
@@ -199,17 +204,19 @@ local function getAgendaTasks(startTimeUnix, endTimeUnix)
                 --insert text to current date if its between scheduled and deadline date
                 if common.isTodoItem(agendaItem.agendaItem[1]) and days[currentDateStr] and
                 (currentDayStart < parsedDeadline["unixTime"]) and (parsedScheduled["unixTime"] < currentDayStart) and
-                currentDateStr ~= agendaItem.properties["Deadline"]:match("([0-9]+%-[0-9]+%-[0-9]+)") and
-                currentDateStr ~= agendaItem.properties["Scheduled"]:match("([0-9]+%-[0-9]+%-[0-9]+)") then
+                currentDateStr ~= deadlineDate and
+                currentDateStr ~= scheduledDate then
                     table.insert(days[currentDateStr], {agendaItem.metadata[1], agendaItem.metadata[2],
                         agendaItem.agendaItem[1].." "..agendaItem.agendaItem[2]..
                         " (DL: "..remainingOrPassedDays(currentDateStr, agendaItem.properties["Deadline"])..")"})
                 end
 
-                --insert text to current date if the current date is close to task scheduled date by n days
-                --also if current date is not higher than the task deadline originally
+                --insert text to today if the current date + n days is bigger than the task scheduled,
+                --and if current date is not bigger than the task scheduled.
+				--But, if the scheduled is in the current date, do not insert it.
                 if common.isTodoItem(agendaItem.agendaItem[1]) and days[currentDateStr] and (currentDayStart < parsedScheduled["unixTime"]) and
-                (currentDayStart + ((config.config.remindScheduledInDays+1)*common.oneDay) > parsedScheduled["unixTime"]) then
+                (currentDayStart + ((config.config.remindScheduledInDays+1)*common.oneDay) > parsedScheduled["unixTime"]) and
+				currentDateStr ~= scheduledDate then
 
                     table.insert(days[currentDateStr], {agendaItem.metadata[1], agendaItem.metadata[2],
                         agendaItem.agendaItem[1].." "..agendaItem.agendaItem[2]..
