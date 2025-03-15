@@ -5,7 +5,7 @@ config.config = {}
 config.initConfig = function(opts)
     config.config.agendaFiles = opts.agendaFiles or {}
     config.config.agendaViewPageItems = opts.agendaViewPageItems or 10
-    config.config.showNonTimeawareTasksToday = opts.showNonTimeawareTasksToday or false
+    --config.config.showNonTimeawareTasksToday = opts.showNonTimeawareTasksToday or false --Deprecated
 
     config.config.remindDeadlineInDays = opts.remindDeadlineInDays or 30
     config.config.remindScheduledInDays = opts.remindScheduledInDays or 10
