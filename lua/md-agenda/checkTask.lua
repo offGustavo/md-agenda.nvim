@@ -36,32 +36,6 @@ ta.taskAction = function(filepath, itemLineNum, action, bufferRefreshNum)
             return
         end
 
-        ---CANCEL ACTION - START
-        if common.isTodoItem(taskType) and action == "cancel" then
-            local newTaskStr = lineContent:gsub("TODO:","CANCELLED:")
-            fileLines[itemLineNum] = newTaskStr
-            --Save new modified lines back to the file
-            local writeFile = io.open(filepath, "w")
-            if not writeFile then
-                print("Could not open file for writing: " .. filepath)
-                return
-            end
-            writeFile:write(table.concat(fileLines, "\n") .. "\n")
-            writeFile:close()
-            --Refresh the given buffer's content
-            if bufferRefreshNum and vim.api.nvim_buf_is_valid(bufferRefreshNum) then
-                vim.cmd("checktime "..tostring(bufferRefreshNum))
-            end
-
-            return
-
-        elseif (not common.isTodoItem(taskType)) and action == "cancel" then
-            print("Can't cancel tasks other than TODO.")
-            return
-        end
-        ---CANCEL ACTION - END
-
-        ---THE REST IS DEFAULT CHECKING ACTION
         local currentTime = os.time()
 
         local taskProperties = common.getTaskProperties(fileLines, itemLineNum, false)
@@ -107,54 +81,72 @@ ta.taskAction = function(filepath, itemLineNum, action, bufferRefreshNum)
             --/IF ITS A NON-REPEATING TASK/--
             if (deadline and not parsedDeadline["nextUnixTime"]) or (scheduled and not parsedScheduled["nextUnixTime"]) or
             (not scheduled and not deadline) then
-                newTaskStr = newTaskStr:gsub("# [A-Z]+:","# DONE:")
+				if action == "cancel" then
+					newTaskStr = lineContent:gsub("TODO:","CANCELLED:")
+					fileLines[itemLineNum] = newTaskStr
 
-                if deadline and parsedDeadline["unixTime"] < currentTime then
-                    newTaskStr = newTaskStr:gsub("DONE:","DUE:")
-                end
+				else
+					newTaskStr = newTaskStr:gsub("# [A-Z]+:","# DONE:")
 
-                --The start line is 0-indexed unlike lua. thus, end line (excluded) is lineNum and changed line is lineNum-1.
-                fileLines[itemLineNum] = newTaskStr
-                fileLines = common.addPropertyToItem(fileLines, itemLineNum, "Completion", os.date("%Y-%m-%d %H:%M", currentTime))
+					if deadline and parsedDeadline["unixTime"] < currentTime then
+						newTaskStr = newTaskStr:gsub("DONE:","DUE:")
+					end
+
+					--The start line is 0-indexed unlike lua. thus, end line (excluded) is lineNum and changed line is lineNum-1.
+					fileLines[itemLineNum] = newTaskStr
+					fileLines = common.addPropertyToItem(fileLines, itemLineNum, "Completion", os.date("%Y-%m-%d %H:%M", currentTime))
+				end
 
             ------------------------
 
             --/IF ITS A REPEATING TASK/--
             elseif (deadline and parsedDeadline["nextUnixTime"]) or (scheduled and parsedScheduled["nextUnixTime"]) then
 
-                --if the repeat indicator on Scheduled property, and current day exceeds the deadline
-                if deadline and scheduled and parsedScheduled["nextUnixTime"] and
-                currentTime > parsedDeadline["unixTime"] then
-                    newTaskStr = newTaskStr:gsub("# [A-Z]+:","# DUE:")
-                    return
-                --if the repeat indicator on Scheduled property, and the next scheduled time exceeds the deadline
-                elseif deadline and scheduled and parsedScheduled["nextUnixTime"] and
-                parsedScheduled["nextUnixTime"] > parsedDeadline["unixTime"] then
-                    newTaskStr = newTaskStr:gsub("# [A-Z]+:","# DONE:")
-                    return
-                end
+				--if the repeat indicator is on Scheduled property, and current day exceeds the deadline
+				if deadline and scheduled and parsedScheduled["nextUnixTime"] and
+				currentTime > parsedDeadline["unixTime"] then
+					if action=="cancel" then
+						newTaskStr = newTaskStr:gsub("# [A-Z]+:","# DUE:")
+					else newTaskStr = newTaskStr:gsub("# [A-Z]+:","# CANCELLED:") end
+					return
+				--if the repeat indicator is on Scheduled property, and the next scheduled time exceeds the deadline
+				elseif deadline and scheduled and parsedScheduled["nextUnixTime"] and
+				parsedScheduled["nextUnixTime"] > parsedDeadline["unixTime"] then
+					if action=="cancel" then
+						newTaskStr = newTaskStr:gsub("# [A-Z]+:","# DONE:")
+					else newTaskStr = newTaskStr:gsub("# [A-Z]+:","# CANCELLED:") end
+					return
+				end
 
-                local progressCurrent, progressDesired = lineContent:match(".*%(([0-9]+)/([0-9]+)%).*")
-                --if there is a progress indicator in the task
-                if progressCurrent and progressDesired then
-                    if tonumber(progressCurrent)==0 then
-                        print("Cannot check the task. No progress has been made.")
-                        return
-                    end
+				local progressCurrent, progressDesired = lineContent:match(".*%(([0-9]+)/([0-9]+)%).*")
+				--if there is a progress indicator in the task
+				if progressCurrent and progressDesired then
+					if action == "cancel" then
+						fileLines = common.addItemToLogbook(fileLines, itemLineNum, "- CANCELLED: `"..os.date("%Y-%m-%d %H:%M",os.time()).."` `("..progressCurrent.."/"..progressDesired..")`")
+					else
+						if tonumber(progressCurrent)==0 then
+							print("Cannot check the task. No progress has been made.")
+							return
+						end
 
-                    --do not mark as done if the progress is not completed
-                    if tonumber(progressCurrent) < tonumber(progressDesired) then
-                        fileLines = common.addItemToLogbook(fileLines, itemLineNum, "- [ ] `"..os.date("%Y-%m-%d %H:%M",os.time()).."` `("..progressCurrent.."/"..progressDesired..")`")
-                    else
-                        fileLines = common.addItemToLogbook(fileLines, itemLineNum, "- [x] `"..os.date("%Y-%m-%d %H:%M",os.time()).."` `("..progressCurrent.."/"..progressDesired..")`")
-                    end
+						--do not mark as done if the progress is not completed
+						if tonumber(progressCurrent) < tonumber(progressDesired) then
+							fileLines = common.addItemToLogbook(fileLines, itemLineNum, "- PROGRESS: `"..os.date("%Y-%m-%d %H:%M",os.time()).."` `("..progressCurrent.."/"..progressDesired..")`")
+						else
+							fileLines = common.addItemToLogbook(fileLines, itemLineNum, "- DONE: `"..os.date("%Y-%m-%d %H:%M",os.time()).."` `("..progressCurrent.."/"..progressDesired..")`")
+						end
+					end
 
-                    newTaskStr = newTaskStr:gsub("%([0-9]+/[0-9]+%)", "(0/"..progressDesired..")")
+					newTaskStr = newTaskStr:gsub("%([0-9]+/[0-9]+%)", "(0/"..progressDesired..")")
 
-                --if there is no progress indicator
-                else
-                    fileLines = common.addItemToLogbook(fileLines, itemLineNum, "- [x] `"..os.date("%Y-%m-%d %H:%M",os.time()).."`")
-                end
+				--if there is no progress indicator
+				else
+					if action == "cancel" then
+						fileLines = common.addItemToLogbook(fileLines, itemLineNum, "- CANCELLED: `"..os.date("%Y-%m-%d %H:%M",os.time()).."`")
+					else
+						fileLines = common.addItemToLogbook(fileLines, itemLineNum, "- DONE: `"..os.date("%Y-%m-%d %H:%M",os.time()).."`")
+					end
+				end
 
                 --if the repeat indicator is on the Scheduled property
                 if scheduled and parsedScheduled["nextUnixTime"] then
@@ -166,7 +158,10 @@ ta.taskAction = function(filepath, itemLineNum, action, bufferRefreshNum)
                 end
 
                 fileLines[itemLineNum] = newTaskStr
-                fileLines = common.addPropertyToItem(fileLines, itemLineNum, "Last Repeat", os.date("%Y-%m-%d %H:%M", currentTime))
+				--if its the check action, save the last repeat property to the logbook.
+				if action ~= "cancel" then
+					fileLines = common.addPropertyToItem(fileLines, itemLineNum, "Last Repeat", os.date("%Y-%m-%d %H:%M", currentTime))
+				end
             end
 
         ---------------------DONE/DUE/INFO/CANCELLED---------------------

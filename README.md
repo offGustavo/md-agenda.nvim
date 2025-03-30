@@ -2,7 +2,7 @@
 ![GitHub stars](https://img.shields.io/github/stars/zenarvus/md-agenda.nvim?style=flat-square)
 ![Forks](https://img.shields.io/github/forks/zenarvus/md-agenda.nvim?style=flat-square)
 ![Issues](https://img.shields.io/github/issues/zenarvus/md-agenda.nvim?style=flat-square)
-![License](https://img.shields.io/badge/license-GPL%20v3-blue.svg)
+![License](https://img.shields.io/badge/license-GPL%20v3-blue.svg?style=flat-square)
 
 A Markdown time and task management plugin for NeoVim, inspired by org-agenda.
 
@@ -109,7 +109,6 @@ A Markdown time and task management plugin for NeoVim, inspired by org-agenda.
 ## Roadmap
 - Use a custom function for folding instead of markers. (Help needed, low priority)
 - Update the parent task's progress indicator and type when a subtask is done. (Medium priority)
-- If the item type is INFO, show a reminder for today, if the next scheduled date is close to, and current date is after than the scheduled date. (Low priority)
 ***
 
 ## Agenda Item Structure
@@ -144,31 +143,16 @@ A Markdown time and task management plugin for NeoVim, inspired by org-agenda.
 - Scheduled: `2025-01-31 00:00 .+1d`
 <details logbook><!--{{{-->
 
-- [x] `2025-01-30 16:58` `(36/30)`
-- [x] `2025-01-29 14:28` `(32/30)`
-- [x] `2025-01-28 13:42` `(30/30)`
-- [x] `2025-01-27 17:53` `(30/30)`
-- [ ] `2025-01-24 13:27` `(28/30)`
-- [ ] `2025-01-23 12:54` `(23/30)`
+- DONE: `2025-01-30 16:58` `(36/30)`
+- DONE: `2025-01-29 14:28` `(32/30)`
+- DONE: `2025-01-28 13:42` `(30/30)`
+- DONE: `2025-01-27 17:53` `(30/30)`
+- PROGRESS: `2025-01-24 13:27` `(28/30)`
+- PROGRESS: `2025-01-23 12:54` `(23/30)`
 <!--}}}--></details>
 
 # INFO: International Workers' Day #event
 - Scheduled: `2025-05-01 00:00 +1y`
-```
-
-```md
-    v--- Task Type          v--- Progress Indicator
-## TODO: Task description (2/n) #tag
-- Deadline: `2024-03-03 12:32`
-- Scheduled: `2024-01-04 14:25 +2d`
-  ^--- Task Properties          ^-- Repeat Indicator
-
-<details logbook>
-
-          v--- Repeat Date
-  - [x] `2024-02-03 13:24` `(n/n)` <--- Logbook Item
-                 Progress ---^ ^--- Goal
-</details>
 ```
 
 ### Repeating Tasks
@@ -205,15 +189,14 @@ Still not satisfied? You can also run Lua scripts inside task properties by plac
 A progress indicator is split into two parts: the progress **(x)** and the goal **(y)**.
 - **In repeating tasks**, upon task completion, the progress is directly saved to the logbook, and the progress in the item is reset.
 
-## Checking a Task
+## Checking/Cancelling a Task
 | Command | Description |
 | - | - |
 | `:CheckTask` | Check the item by placing the cursor on it. |
-| `:CancelTask` | If it is a **TODO**, change the item type to **CANCELLED**. |
+| `:CancelTask` | If it is a **TODO** or **HABIT**, change the item type to **CANCELLED**. |
 
 > [!TIP]
 > You can also check the tasks from the view buffers
-
 
 > [!WARNING]
 > **Items cannot be checked when:**
@@ -223,7 +206,7 @@ A progress indicator is split into two parts: the progress **(x)** and the goal 
 > 4. The repeating task has a **progress indicator** with a **zero** progress.
 
 **If the agenda item has a repeat indicator**;
-- The completed task is directly saved to the logbook without changing the task type.
+- The completed/cancelled task is directly saved to the logbook without changing the task type.
 - If the current scheduled time exceeds the given deadline, the task is marked as due.
 - If the next scheduled time will exceed the deadline, the task is marked as done.
 

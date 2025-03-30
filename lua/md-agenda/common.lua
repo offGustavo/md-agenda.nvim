@@ -498,7 +498,7 @@ common.addItemToLogbook = function(fileLines, itemLineNum, logStr)
         local newLines = {}
         table.insert(newLines, "<details logbook><!--"..common.splitFoldmarkerString()[1].."-->")
         table.insert(newLines, "")
-        table.insert(newLines, "  "..logStr)
+        table.insert(newLines, logStr)
         table.insert(newLines, "<!--"..common.splitFoldmarkerString()[2].."--></details>")
 
         for i, newLine in ipairs(newLines) do
@@ -528,8 +528,8 @@ common.getLogbookEntries = function(ContentLinesArr, taskLineNum)
         end
 
         if logbookStartPassed then
-            --example logbook line: - [x] `2022-12-30 18:80` `(6/10)`
-            local status, text = line:match(" *- %[(.+)%] (.*)")
+            --example logbook line: - DONE: `2022-12-30 18:80` `(6/10)`
+            local status, text = line:match(" *- ([A-Z]+): (.*)")
 
             if status and text then
                 local log = {}
@@ -572,7 +572,7 @@ common.getAgendaItems = function(detailLevel)
             metadata={filePath, lineNumber}
             agendaItem={type, text, fullLine}
             properties={key=value} --if not minimal
-            logbookItems={{status(x or whitespace), time, progress}, ...} --if not minimal
+            logbookItems={{item type, time, progress}, ...} --if not minimal
         },
         {...},
         ...

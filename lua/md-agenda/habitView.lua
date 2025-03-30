@@ -81,9 +81,9 @@ local function getHabitTasks(startTimeUnix, endTimeUnix)
                 if habitDays[habitDay] then
                     local habitStatus = log[1]
 
-                    if habitStatus == "x" then
+                    if habitStatus == "DONE" then
                         habitDays[habitDay] = "⊹" --it means that the habit is done that day
-                    elseif habitStatus == " " then
+                    elseif habitStatus == "PROGRESS" then
                         habitDays[habitDay] = "¤" --it means that a progress has been made but habit goal could not be made
                     end
                 end
