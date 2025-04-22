@@ -167,10 +167,9 @@ local function getAgendaTasks(startTimeUnix, endTimeUnix)
                         "Deadline: "..showTimeStrInAgendaItem(agendaItem.properties["Deadline"])..
                         agendaItem.agendaItem[1].." "..agendaItem.agendaItem[2]})
                 end
-                --insert text to today if the current date + n days is bigger than the task deadline,
-                --and if current date is not bigger than the task deadline.
+                --insert text to today if the current date + n days is bigger than the task deadline.
 				--But, if the deadline is in the current date, do not insert it.
-                if common.isTodoItem(agendaItem.agendaItem[1]) and days[currentDateStr] and (currentDayStart < parsedDeadline["unixTime"]) and
+                if common.isTodoItem(agendaItem.agendaItem[1]) and days[currentDateStr] and
                 (currentDayStart + ((config.config.remindDeadlineInDays+1)*common.oneDay) > parsedDeadline["unixTime"]) and
 				currentDateStr ~= deadlineDate then
 
@@ -206,6 +205,15 @@ local function getAgendaTasks(startTimeUnix, endTimeUnix)
                 (currentDayStart < parsedDeadline["unixTime"]) and (parsedScheduled["unixTime"] < currentDayStart) and
                 currentDateStr ~= deadlineDate and
                 currentDateStr ~= scheduledDate then
+                    table.insert(days[currentDateStr], {agendaItem.metadata[1], agendaItem.metadata[2],
+                        agendaItem.agendaItem[1].." "..agendaItem.agendaItem[2]..
+                        " (DL: "..remainingOrPassedDays(currentDateStr, agendaItem.properties["Deadline"])..")"})
+                end
+
+				--insert text to today if the deadline is passed
+                if common.isTodoItem(agendaItem.agendaItem[1]) and days[currentDateStr] and
+                (parsedDeadline["unixTime"] < currentDayStart) and
+                currentDateStr ~= deadlineDate then
                     table.insert(days[currentDateStr], {agendaItem.metadata[1], agendaItem.metadata[2],
                         agendaItem.agendaItem[1].." "..agendaItem.agendaItem[2]..
                         " (DL: "..remainingOrPassedDays(currentDateStr, agendaItem.properties["Deadline"])..")"})
