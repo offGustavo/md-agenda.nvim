@@ -185,9 +185,12 @@ Still not satisfied? You can also run Lua scripts inside task properties by plac
 - Scheduled: `$(/path/to/lua/script/test.lua)`
 ```
 
-### **Progress Indicator (x/y)**
+### Progress Indicator (x/y)
 A progress indicator is split into two parts: the progress **(x)** and the goal **(y)**.
 - **In repeating tasks**, upon task completion, the progress is directly saved to the logbook, and the progress in the item is reset.
+
+> [!TIP]
+> You can use the `:UpdateProgress` command to update the progress of the task, or simply, change it by modifying x.
 
 ## Checking/Cancelling a Task
 | Command | Description |
@@ -196,7 +199,7 @@ A progress indicator is split into two parts: the progress **(x)** and the goal 
 | `:CancelTask` | If it is a **TODO** or **HABIT**, change the item type to **CANCELLED**. |
 
 > [!TIP]
-> You can also check the tasks from the view buffers
+> You can also check the tasks, and update their progress from the view buffers
 
 > [!WARNING]
 > **Items cannot be checked when:**
@@ -212,7 +215,8 @@ A progress indicator is split into two parts: the progress **(x)** and the goal 
 
 ## Plugin Buffers
 > [!TIP]
-> To close a buffer, you can use the Escape key.
+> To close a buffer, you can use the Escape key, and
+> to go to the task, you can press enter.
 
 ### Agenda View
 | Command | Description |

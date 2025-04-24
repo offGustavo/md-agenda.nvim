@@ -3,6 +3,7 @@ local config = require("md-agenda.config")
 local common = require("md-agenda.common")
 
 local taskAction = require("md-agenda.checkTask")
+local updateProgress = require("md-agenda.updateProgress")
 
 local vim = vim
 
@@ -211,6 +212,43 @@ habitView.renderHabitView = function()
 
     vim.keymap.set('n', '<Esc>', function()vim.cmd('bd')
     end, { buffer = bufNumber, noremap = true, silent = true })
+
+	--Go to the task
+    vim.keymap.set('n', '<Enter>', function()
+        local cursorLineNum = vim.api.nvim_win_get_cursor(0)[1]
+        if lineItemMetadataMap[cursorLineNum] then
+			vim.cmd("bd")
+			--go to the file of the task
+            vim.cmd('edit '..lineItemMetadataMap[cursorLineNum][1])
+			--go to the task line number
+			vim.cmd(""..lineItemMetadataMap[cursorLineNum][2])
+        else
+            print("To check an item, place your cursor to the agenda item and rerun this command.")
+        end
+    end, { buffer = bufNumber, noremap = true, silent = true })
+
+	--Update Progress--
+	vim.api.nvim_buf_create_user_command(0, 'UpdateProgress', function()
+        local cursorLineNum = vim.api.nvim_win_get_cursor(0)[1]
+        if lineItemMetadataMap[cursorLineNum] then
+			local progressCount = vim.fn.input("New Progress: ")
+			if #progressCount == 0 then
+				print("No change")
+				return
+			elseif not tonumber(progressCount) then
+				print("Invalid progress count")
+				return
+			end
+			local currentBufNum = vim.api.nvim_get_current_buf()
+			updateProgress.updateTaskProgress(lineItemMetadataMap[cursorLineNum][1], lineItemMetadataMap[cursorLineNum][2], tonumber(progressCount), currentBufNum)
+            --After the update, refresh the view
+            vim.cmd('bd')
+            habitView.renderHabitView()
+            vim.cmd(tostring(cursorLineNum))
+        else
+            print("To update a progress, place your cursor to the agenda item and rerun this command.")
+        end
+	end, {})
 
     --Task checking command
     vim.api.nvim_buf_create_user_command(0, 'CheckTask', function()

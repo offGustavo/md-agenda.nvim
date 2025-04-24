@@ -7,6 +7,7 @@ local function setup(opts)
 
     local insertDate = require("md-agenda.insertDate")
     local checkTask = require("md-agenda.checkTask")
+	local updateProgress = require("md-agenda.updateProgress")
     local agendaView = require("md-agenda.agendaView")
     local habitView = require("md-agenda.habitView")
     local agendaDashboard = require("md-agenda.agendaDashboard")
@@ -65,6 +66,20 @@ local function setup(opts)
             vim.api.nvim_buf_create_user_command(0, 'CancelTask', function()
                 local currentBufNum = vim.api.nvim_get_current_buf()
                 checkTask.taskAction(vim.api.nvim_buf_get_name(0), vim.api.nvim_win_get_cursor(0)[1], "cancel", currentBufNum)
+            end, {})
+
+			--Update Progress--
+            vim.api.nvim_buf_create_user_command(0, 'UpdateProgress', function()
+				local progressCount = vim.fn.input("New Progress: ")
+				if #progressCount == 0 then
+					print("No change")
+					return
+				elseif not tonumber(progressCount) then
+					print("Invalid progress count")
+					return
+				end
+                local currentBufNum = vim.api.nvim_get_current_buf()
+                updateProgress.updateTaskProgress(vim.api.nvim_buf_get_name(0), vim.api.nvim_win_get_cursor(0)[1], tonumber(progressCount), currentBufNum)
             end, {})
 
             --Re-highlight for the markdown files
