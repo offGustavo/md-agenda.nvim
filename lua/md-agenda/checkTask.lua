@@ -82,7 +82,7 @@ ta.taskAction = function(filepath, itemLineNum, action, bufferRefreshNum)
             if (deadline and not parsedDeadline["nextUnixTime"]) or (scheduled and not parsedScheduled["nextUnixTime"]) or
             (not scheduled and not deadline) then
 				if action == "cancel" then
-					newTaskStr = lineContent:gsub("TODO:","CANCELLED:")
+					newTaskStr = lineContent:gsub("# [A-Z]+:","# CANCELLED:")
 					fileLines[itemLineNum] = newTaskStr
 
 				else
