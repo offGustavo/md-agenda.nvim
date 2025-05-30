@@ -38,174 +38,179 @@ local function remainingOrPassedDays(fromDate ,targetDate)
 end
 
 local function passesFilters(group,agendaItem)
-    if config.config.dashboard[group] then
+	--for _,groupFilter in ipairs(group) do
+	for i = 1, #group do
+		local groupFilter = group[i]
+		-- the first value of groupFilter is the groupName
+		-- So, we need to skip it.
+		if i==1 then goto continue end
 
-        for _,groupFilter in ipairs(config.config.dashboard[group]) do
+		-- The rest of the values are maps that contain filters
 
-            --Check if the agenda item passes type filter.
-            local typeFilterPass=true
-            if groupFilter.type and #groupFilter.type > 0 then
-                local typeMatch = false
-                for _,filterItemType in ipairs(groupFilter.type) do
-                    if agendaItem.agendaItem[1] == filterItemType then
-                        typeMatch = true
-                        break
-                    end
-                end
-                typeFilterPass = typeMatch
-            end
+		--Check if the agenda item passes type filter.
+		local typeFilterPass=true
+		if groupFilter.type and #groupFilter.type > 0 then
+			local typeMatch = false
+			for _,filterItemType in ipairs(groupFilter.type) do
+				if agendaItem.agendaItem[1] == filterItemType then
+					typeMatch = true
+					break
+				end
+			end
+			typeFilterPass = typeMatch
+		end
 
-            --Check if the agenda item passes tag filter.
-            local tagFilterPass=true
-            if groupFilter.tags then
-                --AND filter passing
-                local tagFilterANDPass=true
-                if groupFilter.tags["AND"] and #groupFilter.tags["AND"] > 0 then
-                    tagFilterANDPass=false
+		--Check if the agenda item passes tag filter.
+		local tagFilterPass=true
+		if groupFilter.tags then
+			--AND filter passing
+			local tagFilterANDPass=true
+			if groupFilter.tags["AND"] and #groupFilter.tags["AND"] > 0 then
+				tagFilterANDPass=false
 
-                    local tagANDmatchCount = 0
-                    for _,andTag in ipairs(groupFilter.tags["AND"]) do
-                        if agendaItem.agendaItem[2]:match("#"..andTag) or agendaItem.agendaItem[2]:match(":"..andTag..":") then
-                            tagANDmatchCount = tagANDmatchCount + 1
-                        end
-                    end
+				local tagANDmatchCount = 0
+				for _,andTag in ipairs(groupFilter.tags["AND"]) do
+					if agendaItem.agendaItem[2]:match("#"..andTag) or agendaItem.agendaItem[2]:match(":"..andTag..":") then
+						tagANDmatchCount = tagANDmatchCount + 1
+					end
+				end
 
-                    if tagANDmatchCount == #groupFilter.tags["AND"] then
-                        tagFilterANDPass = true
-                    end
-                end
+				if tagANDmatchCount == #groupFilter.tags["AND"] then
+					tagFilterANDPass = true
+				end
+			end
 
-                --OR filter passing
-                local tagFilterORPass=true
-                if groupFilter.tags["OR"] and #groupFilter.tags["OR"] > 0 then
-                    tagFilterORPass=false
-                    for _,orTag in ipairs(groupFilter.tags["OR"]) do
-                        if agendaItem.agendaItem[2]:match("#"..orTag) or agendaItem.agendaItem[2]:match(":"..orTag..":") then
-                            tagFilterORPass=true
-                            break
-                        end
-                    end
+			--OR filter passing
+			local tagFilterORPass=true
+			if groupFilter.tags["OR"] and #groupFilter.tags["OR"] > 0 then
+				tagFilterORPass=false
+				for _,orTag in ipairs(groupFilter.tags["OR"]) do
+					if agendaItem.agendaItem[2]:match("#"..orTag) or agendaItem.agendaItem[2]:match(":"..orTag..":") then
+						tagFilterORPass=true
+						break
+					end
+				end
 
-                end
+			end
 
-                tagFilterPass = (tagFilterANDPass and tagFilterORPass)
-            end
+			tagFilterPass = (tagFilterANDPass and tagFilterORPass)
+		end
 
-            --Check if the agenda item passes deadline filter.
-            local deadlineFilterPass=true
-            if groupFilter.deadline and #groupFilter.deadline > 0 then
-                if agendaItem.properties["Deadline"] then
-                    local currentTime = os.time()
-                    local currentTimeTable = os.date("*t",currentTime)
-                    local dyear, dmonth, dday = agendaItem.properties["Deadline"]:match("([0-9]+)%-([0-9]+)%-([0-9]+)")
-                    local deadlineUnix = os.time({year=dyear, month=dmonth, day=dday})
+		--Check if the agenda item passes deadline filter.
+		local deadlineFilterPass=true
+		if groupFilter.deadline and #groupFilter.deadline > 0 then
+			if agendaItem.properties["Deadline"] then
+				local currentTime = os.time()
+				local currentTimeTable = os.date("*t",currentTime)
+				local dyear, dmonth, dday = agendaItem.properties["Deadline"]:match("([0-9]+)%-([0-9]+)%-([0-9]+)")
+				local deadlineUnix = os.time({year=dyear, month=dmonth, day=dday})
 
-                    if groupFilter.deadline == "none" then
-                        deadlineFilterPass = false
+				if groupFilter.deadline == "none" then
+					deadlineFilterPass = false
 
-                    elseif groupFilter.deadline == "today" then
-                        if currentTimeTable.year == dyear and currentTimeTable.month == dmonth and currentTimeTable.day == dday then
-                            deadlineFilterPass = true
+				elseif groupFilter.deadline == "today" then
+					if currentTimeTable.year == dyear and currentTimeTable.month == dmonth and currentTimeTable.day == dday then
+						deadlineFilterPass = true
 
-                        else deadlineFilterPass = false end
+					else deadlineFilterPass = false end
 
-                    elseif groupFilter.deadline == "nearFuture" then
-                        --insert text to current date if the current date is close to task deadline by n days
-                        --also if current date is not higher than the task deadline originally
-                        if (currentTime < deadlineUnix) and
-                        (currentTime + ((config.config.remindDeadlineInDays+1)*common.oneDay) > deadlineUnix) then
-                            deadlineFilterPass = true
+				elseif groupFilter.deadline == "nearFuture" then
+					--insert text to current date if the current date is close to task deadline by n days
+					--also if current date is not higher than the task deadline originally
+					if (currentTime < deadlineUnix) and
+					(currentTime + ((config.config.remindDeadlineInDays+1)*common.oneDay) > deadlineUnix) then
+						deadlineFilterPass = true
 
-                        else deadlineFilterPass = false end
+					else deadlineFilterPass = false end
 
-                    elseif groupFilter.deadline == "past" then
-                        if deadlineUnix < currentTime then
-                            deadlineFilterPass = true
+				elseif groupFilter.deadline == "past" then
+					if deadlineUnix < currentTime then
+						deadlineFilterPass = true
 
-                        else deadlineFilterPass = false end
+					else deadlineFilterPass = false end
 
-                    elseif groupFilter.deadline:match("^before-[0-9]+%-[0-9]+%-[0-9]+") then
-                        local fyear, fmonth, fday = groupFilter.deadline:match("([0-9]+)%-([0-9]+)%-([0-9]+)")
+				elseif groupFilter.deadline:match("^before-[0-9]+%-[0-9]+%-[0-9]+") then
+					local fyear, fmonth, fday = groupFilter.deadline:match("([0-9]+)%-([0-9]+)%-([0-9]+)")
 
-                        if deadlineUnix < os.time({year=fyear, month=fmonth, day=fday}) then
-                            deadlineFilterPass = true
+					if deadlineUnix < os.time({year=fyear, month=fmonth, day=fday}) then
+						deadlineFilterPass = true
 
-                        else deadlineFilterPass = false end
+					else deadlineFilterPass = false end
 
-                    elseif groupFilter.deadline:match("^after-[0-9]+%-[0-9]+%-[0-9]+") then
-                        local fyear, fmonth, fday = groupFilter.deadline:match("([0-9]+)%-([0-9]+)%-([0-9]+)")
+				elseif groupFilter.deadline:match("^after-[0-9]+%-[0-9]+%-[0-9]+") then
+					local fyear, fmonth, fday = groupFilter.deadline:match("([0-9]+)%-([0-9]+)%-([0-9]+)")
 
-                        if os.time({year=fyear, month=fmonth, day=fday}) < deadlineUnix then
-                            deadlineFilterPass = true
+					if os.time({year=fyear, month=fmonth, day=fday}) < deadlineUnix then
+						deadlineFilterPass = true
 
-                        else deadlineFilterPass = false end
-                    end
-                else
-                    if groupFilter.deadline ~= "none" then
-                        deadlineFilterPass=false
-                    end
-                end
-            end
+					else deadlineFilterPass = false end
+				end
+			else
+				if groupFilter.deadline ~= "none" then
+					deadlineFilterPass=false
+				end
+			end
+		end
 
-            --Check if the agenda item passes scheduled filter
-            local scheduledFilterPass=true
-            if groupFilter.scheduled and #groupFilter.scheduled > 0 then
-                if agendaItem.properties["Scheduled"] then
-                    local currentTime = os.time()
-                    local currentTimeTable = os.date("*t",currentTime)
-                    local syear, smonth, sday = agendaItem.properties["Scheduled"]:match("([0-9]+)%-([0-9]+)%-([0-9]+)")
-                    local scheduledUnix = os.time({year=syear, month=smonth, day=sday})
+		--Check if the agenda item passes scheduled filter
+		local scheduledFilterPass=true
+		if groupFilter.scheduled and #groupFilter.scheduled > 0 then
+			if agendaItem.properties["Scheduled"] then
+				local currentTime = os.time()
+				local currentTimeTable = os.date("*t",currentTime)
+				local syear, smonth, sday = agendaItem.properties["Scheduled"]:match("([0-9]+)%-([0-9]+)%-([0-9]+)")
+				local scheduledUnix = os.time({year=syear, month=smonth, day=sday})
 
-                    if groupFilter.scheduled == "none" then
-                        scheduledFilterPass=false
+				if groupFilter.scheduled == "none" then
+					scheduledFilterPass=false
 
-                    elseif groupFilter.scheduled == "today" then
-                        if currentTimeTable.year == syear and currentTimeTable.month == smonth and currentTimeTable.day == sday then
-                            scheduledFilterPass = true
+				elseif groupFilter.scheduled == "today" then
+					if currentTimeTable.year == syear and currentTimeTable.month == smonth and currentTimeTable.day == sday then
+						scheduledFilterPass = true
 
-                        else scheduledFilterPass = false end
+					else scheduledFilterPass = false end
 
-                    elseif groupFilter.scheduled == "nearFuture" then
-                        if (currentTime < scheduledUnix) and
-                        (currentTime + ((config.config.remindScheduledInDays+1)*common.oneDay) > scheduledUnix) then
-                            scheduledFilterPass = true
+				elseif groupFilter.scheduled == "nearFuture" then
+					if (currentTime < scheduledUnix) and
+					(currentTime + ((config.config.remindScheduledInDays+1)*common.oneDay) > scheduledUnix) then
+						scheduledFilterPass = true
 
-                        else scheduledFilterPass = false end
+					else scheduledFilterPass = false end
 
-                    elseif groupFilter.scheduled == "past" then
-                        if scheduledUnix < currentTime then
-                            scheduledFilterPass = true
+				elseif groupFilter.scheduled == "past" then
+					if scheduledUnix < currentTime then
+						scheduledFilterPass = true
 
-                        else scheduledFilterPass = false end
+					else scheduledFilterPass = false end
 
-                    elseif groupFilter.scheduled:match("^before-[0-9]+%-[0-9]+%-[0-9]+") then
-                        local fyear, fmonth, fday = groupFilter.deadline:match("([0-9]+)%-([0-9]+)%-([0-9]+)")
+				elseif groupFilter.scheduled:match("^before-[0-9]+%-[0-9]+%-[0-9]+") then
+					local fyear, fmonth, fday = groupFilter.deadline:match("([0-9]+)%-([0-9]+)%-([0-9]+)")
 
-                        if os.time({year=fyear, month=fmonth, day=fday}) < scheduledUnix then
-                            scheduledFilterPass = true
+					if os.time({year=fyear, month=fmonth, day=fday}) < scheduledUnix then
+						scheduledFilterPass = true
 
-                        else scheduledFilterPass = false end
+					else scheduledFilterPass = false end
 
-                    elseif groupFilter.scheduled:match("^after-[0-9]+%-[0-9]+%-[0-9]+") then
-                        local fyear, fmonth, fday = groupFilter.deadline:match("([0-9]+)%-([0-9]+)%-([0-9]+)")
+				elseif groupFilter.scheduled:match("^after-[0-9]+%-[0-9]+%-[0-9]+") then
+					local fyear, fmonth, fday = groupFilter.deadline:match("([0-9]+)%-([0-9]+)%-([0-9]+)")
 
-                        if scheduledUnix < os.time({year=fyear, month=fmonth, day=fday}) then
-                            scheduledFilterPass = true
+					if scheduledUnix < os.time({year=fyear, month=fmonth, day=fday}) then
+						scheduledFilterPass = true
 
-                        else scheduledFilterPass = false end
-                    end
-                else
-                    if groupFilter.scheduled ~= "none" then
-                        scheduledFilterPass=false
-                    end
-                end
-            end
+					else scheduledFilterPass = false end
+				end
+			else
+				if groupFilter.scheduled ~= "none" then
+					scheduledFilterPass=false
+				end
+			end
+		end
 
-            if (typeFilterPass and tagFilterPass and deadlineFilterPass and scheduledFilterPass) == true then
-                return (typeFilterPass and tagFilterPass and deadlineFilterPass and scheduledFilterPass)
-            end
-        end
-    end
+		if (typeFilterPass and tagFilterPass and deadlineFilterPass and scheduledFilterPass) == true then
+			return true
+		end
+		::continue::
+	end
 
     return false
 end
@@ -226,21 +231,22 @@ local function getGroupsAndItems()
     }]]
     local groupsAndItems = {}
 
-    if not config.config.dashboardOrder then
+    --[[if not config.config.dashboardOrder then
         print("No items in dashboard order.")
         return {}
-    end
+    end]]
 
     --local noPass = 0
 
-    for _,groupName in ipairs(config.config.dashboardOrder) do
+    for _,group in ipairs(config.config.dashboard) do
+		local groupName = group[1]
         local groupAndItsItems = {groupName}
 
         local groupItems = {}
 
         for _, agendaItem in ipairs(agendaItems) do
             --if not passesFilters(groupName, agendaItem) then noPass = noPass + 1 end
-            if passesFilters(groupName, agendaItem) then
+            if passesFilters(group, agendaItem) then
                 local itemText = ""
 
                 ------------------
@@ -385,7 +391,7 @@ agendaDashboard.renderAgendaDashboard = function()
 
     for customType, itsColor in pairs(config.config.customTodoTypes) do
         vim.cmd("highlight "..customType.." guifg="..itsColor.." ctermfg="..itsColor)
-        vim.cmd("syntax match done /"..customType.."/")
+        vim.cmd("syntax match "..customType.." /"..customType.."/")
     end
 
     local lineItemMetadataMap = {}

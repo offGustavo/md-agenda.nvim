@@ -16,6 +16,27 @@ config.initConfig = function(opts)
 
     config.config.customTodoTypes = opts.customTodoTypes or {}
 
+    config.config.dashboard = opts.dashboard or {
+		{"All TODO Items", -- Group name
+			{
+				-- Item types, e.g., {"TODO", "INFO"}. Gets the items that match one of the given types. Ignored if empty.
+				type={"TODO"},
+
+				-- List of tags to filter. Use AND/OR conditions, e.g., {AND = {"tag1", "tag2"}, OR = {"tag1", "tag2"}}. Ignored if empty.
+				tags={},
+
+				-- Both, deadline and scheduled filters can take the same parameters.
+				-- "none", "today", "past", "nearFuture", "before-yyyy-mm-dd", "after-yyyy-mm-dd".
+				-- Ignored if empty.
+				deadline="",
+				scheduled="",
+			},
+			--{...}, Additional filter maps can be added in the same group.
+		},
+		--{"Other Group", {...}, ...}}
+	}
+
+	--[[
     config.config.dashboardOrder = opts.dashboardOrder or {"All TODO Items"}
     config.config.dashboard = opts.dashboard or {
         ["All TODO Items"] = {
@@ -28,7 +49,7 @@ config.initConfig = function(opts)
             --{...},
             --...
         },
-    }
+    }]]
 
     config.config.tagColor = opts.tagColor or "gray"
     config.config.titleColor = opts.titleColor or "yellow"
