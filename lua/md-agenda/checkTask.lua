@@ -13,74 +13,74 @@ ta.taskAction = function(filepath, itemLineNum, action, bufferRefreshNum)
 		vim.cmd("b "..bufferRefreshNum.."| w")
 	end
 
-    -- Read the lines from the specified file
-    local readFile = io.open(filepath, "r")
-    if not readFile then
-        print("Could not open file: " .. filepath)
-        return
-    end
+	-- Read the lines from the specified file
+	local readFile = io.open(filepath, "r")
+	if not readFile then
+		print("Could not open file: " .. filepath)
+		return
+	end
 
-    local fileLines = {}
-    for line in readFile:lines() do
-        table.insert(fileLines, line)
-    end
-    readFile:close()
+	local fileLines = {}
+	for line in readFile:lines() do
+		table.insert(fileLines, line)
+	end
+	readFile:close()
 
-    local lineContent = fileLines[itemLineNum]
+	local lineContent = fileLines[itemLineNum]
 
-    local taskType = lineContent:match("^ *#+ ([A-Z]+): .*$")
-    if taskType then
+	local taskType = lineContent:match("^ *#+ ([A-Z]+): .*$")
+	if taskType then
 
-        if (not common.isTodoItem(taskType)) and taskType~="HABIT" and taskType~="DONE" and taskType~="DUE" and taskType~="INFO" and taskType~="CANCELLED" then
-            print("Not a task or has not a supported task type")
-            return
-        end
+		if (not common.isTodoItem(taskType)) and taskType~="HABIT" and taskType~="DONE" and taskType~="DUE" and taskType~="INFO" and taskType~="CANCELLED" then
+			print("Not a task or has not a supported task type")
+			return
+		end
 
-        local currentTime = os.time()
+		local currentTime = os.time()
 
-        local taskProperties = common.getTaskProperties(fileLines, itemLineNum, false)
+		local taskProperties = common.getTaskProperties(fileLines, itemLineNum, false)
 
-        local scheduledTimeStr, parsedScheduled
-        local scheduled=taskProperties["Scheduled"]
-        if scheduled then
-            scheduledTimeStr = scheduled
-            parsedScheduled = common.parseTaskTime(scheduledTimeStr)
+		local scheduledTimeStr, parsedScheduled
+		local scheduled=taskProperties["Scheduled"]
+		if scheduled then
+			scheduledTimeStr = scheduled
+			parsedScheduled = common.parseTaskTime(scheduledTimeStr)
 
-            if not parsedScheduled then print("for some reason, scheduled could not correctly parsed") return end
+			if not parsedScheduled then print("for some reason, scheduled could not correctly parsed") return end
 
-            if currentTime < parsedScheduled["unixTime"] then
-                print("Cannot check the task. The scheduled time is not been arrived yet")
-                return
-            end
-        end
+			if currentTime < parsedScheduled["unixTime"] then
+				print("Cannot check the task. The scheduled time is not been arrived yet")
+				return
+			end
+		end
 
-        if taskType=="HABIT" and (not scheduled) then
-            print("Cannot check the task. Habits must include a Scheduled property")
-            return
-        end
+		if taskType=="HABIT" and (not scheduled) then
+			print("Cannot check the task. Habits must include a Scheduled property")
+			return
+		end
 
-        local deadlineTimeStr, parsedDeadline
-        local deadline=taskProperties["Deadline"]
-        if deadline then
-            deadlineTimeStr = deadline
-            parsedDeadline = common.parseTaskTime(deadlineTimeStr)
+		local deadlineTimeStr, parsedDeadline
+		local deadline=taskProperties["Deadline"]
+		if deadline then
+			deadlineTimeStr = deadline
+			parsedDeadline = common.parseTaskTime(deadlineTimeStr)
 
-            if not parsedDeadline then print("for some reason, deadline could not correctly parsed") return end
-        end
+			if not parsedDeadline then print("for some reason, deadline could not correctly parsed") return end
+		end
 
-        if deadline and scheduled and parsedDeadline["nextUnixTime"] and parsedScheduled["nextUnixTime"] then
-            print("Only one property can contain a repeat indicator.")
-            return
-        end
+		if deadline and scheduled and parsedDeadline["nextUnixTime"] and parsedScheduled["nextUnixTime"] then
+			print("Only one property can contain a repeat indicator.")
+			return
+		end
 
-        ---------------------TODO/HABIT CASE---------------------
-        if common.isTodoItem(taskType) or taskType=="HABIT" then
+		---------------------TODO/HABIT CASE---------------------
+		if common.isTodoItem(taskType) or taskType=="HABIT" then
 
-            local newTaskStr = lineContent
+			local newTaskStr = lineContent
 
-            --/IF ITS A NON-REPEATING TASK/--
-            if (deadline and not parsedDeadline["nextUnixTime"]) or (scheduled and not parsedScheduled["nextUnixTime"]) or
-            (not scheduled and not deadline) then
+			--/IF ITS A NON-REPEATING TASK/--
+			if (deadline and not parsedDeadline["nextUnixTime"]) or (scheduled and not parsedScheduled["nextUnixTime"]) or
+			(not scheduled and not deadline) then
 				if action == "cancel" then
 					newTaskStr = lineContent:gsub("# [A-Z]+:","# CANCELLED:")
 					fileLines[itemLineNum] = newTaskStr
@@ -97,10 +97,10 @@ ta.taskAction = function(filepath, itemLineNum, action, bufferRefreshNum)
 					fileLines = common.addPropertyToItem(fileLines, itemLineNum, "Completion", os.date("%Y-%m-%d %H:%M", currentTime))
 				end
 
-            ------------------------
+			------------------------
 
-            --/IF ITS A REPEATING TASK/--
-            elseif (deadline and parsedDeadline["nextUnixTime"]) or (scheduled and parsedScheduled["nextUnixTime"]) then
+			--/IF ITS A REPEATING TASK/--
+			elseif (deadline and parsedDeadline["nextUnixTime"]) or (scheduled and parsedScheduled["nextUnixTime"]) then
 
 				--if the repeat indicator is on Scheduled property, and current day exceeds the deadline
 				if deadline and scheduled and parsedScheduled["nextUnixTime"] and
@@ -148,54 +148,54 @@ ta.taskAction = function(filepath, itemLineNum, action, bufferRefreshNum)
 					end
 				end
 
-                --if the repeat indicator is on the Scheduled property
-                if scheduled and parsedScheduled["nextUnixTime"] then
-                    fileLines = common.addPropertyToItem(fileLines, itemLineNum, "Scheduled", parsedScheduled["nextTimeStr"])
+				--if the repeat indicator is on the Scheduled property
+				if scheduled and parsedScheduled["nextUnixTime"] then
+					fileLines = common.addPropertyToItem(fileLines, itemLineNum, "Scheduled", parsedScheduled["nextTimeStr"])
 
-                --if the repeat indicator is on the Deadline property
-                elseif deadline and parsedDeadline["nextUnixTime"] then
-                    fileLines = common.addPropertyToItem(fileLines, itemLineNum, "Deadline", parsedDeadline["nextTimeStr"])
-                end
+				--if the repeat indicator is on the Deadline property
+				elseif deadline and parsedDeadline["nextUnixTime"] then
+					fileLines = common.addPropertyToItem(fileLines, itemLineNum, "Deadline", parsedDeadline["nextTimeStr"])
+				end
 
-                fileLines[itemLineNum] = newTaskStr
+				fileLines[itemLineNum] = newTaskStr
 				--if its the check action, save the last repeat property to the logbook.
 				if action ~= "cancel" then
 					fileLines = common.addPropertyToItem(fileLines, itemLineNum, "Last Repeat", os.date("%Y-%m-%d %H:%M", currentTime))
 				end
-            end
+			end
 
-        ---------------------DONE/DUE/INFO/CANCELLED---------------------
-        elseif taskType=="DONE" then
-            print("Can't check a done task.")
-            return
-        elseif taskType=="DUE" then
-            print("Can't check a due task.")
-            return
-        elseif taskType=="INFO" then
-            print("Cant check an info item.")
-            return
-        elseif taskType=="CANCELLED" then
-            print("Can't check a non-task item.")
-            return
-        end
+		---------------------DONE/DUE/INFO/CANCELLED---------------------
+		elseif taskType=="DONE" then
+			print("Can't check a done task.")
+			return
+		elseif taskType=="DUE" then
+			print("Can't check a due task.")
+			return
+		elseif taskType=="INFO" then
+			print("Cant check an info item.")
+			return
+		elseif taskType=="CANCELLED" then
+			print("Can't check a non-task item.")
+			return
+		end
 
-        ---
+		---
 
-        --Save new modified lines back to the file
-        local writeFile = io.open(filepath, "w")
-        if not writeFile then
-            print("Could not open file for writing: " .. filepath)
-            return
-        end
+		--Save new modified lines back to the file
+		local writeFile = io.open(filepath, "w")
+		if not writeFile then
+			print("Could not open file for writing: " .. filepath)
+			return
+		end
 
-        writeFile:write(table.concat(fileLines, "\n") .. "\n")
-        writeFile:close()
+		writeFile:write(table.concat(fileLines, "\n") .. "\n")
+		writeFile:close()
 
-        --Refresh the given buffer's content
-        if bufferRefreshNum and vim.api.nvim_buf_is_valid(bufferRefreshNum) then
-            vim.cmd("checktime "..tostring(bufferRefreshNum))
-        end
-    end
+		--Refresh the given buffer's content
+		if bufferRefreshNum and vim.api.nvim_buf_is_valid(bufferRefreshNum) then
+			vim.cmd("checktime "..tostring(bufferRefreshNum))
+		end
+	end
 end
 
 return ta

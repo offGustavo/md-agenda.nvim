@@ -57,7 +57,8 @@ A Markdown time and task management plugin for NeoVim, inspired by org-agenda.
                     },
                     --{...}, Additional filter maps can be added in the same group.
                 },
-                --{"Other Group", {...}, ...}}
+                --{"Other Group", {...}, ...}
+                --...
             },
 
             -- Optional: Change agenda colors.
