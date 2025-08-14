@@ -6,9 +6,16 @@
 
 A Markdown time and task management plugin for NeoVim, inspired by org-agenda.
 
+> [!IMPORTANT]
+> **For the full documentation and syntax guide, please refer [here](https://zenarvus.com/1tvytN.md)**
+
+## Showcase
+![md-agenda-agenda.png](https://zenarvus.com/media/content/md-agenda-agenda.png)
+
+![md-agenda-habits.png](https://zenarvus.com/media/content/md-agenda-habits.png)
+
 ## Installation/Configuration
-### Requirements
-- [ripgrep](https://github.com/BurntSushi/ripgrep)
+**This plugin requires [ripgrep](https://github.com/BurntSushi/ripgrep) to work!**
 
 ### Using lazy.nvim
 ```lua
@@ -104,6 +111,3 @@ A Markdown time and task management plugin for NeoVim, inspired by org-agenda.
     end
 },
 ```
-
-> [!IMPORTANT]
-> **For the full documentation, please refer [here](https://zenarvus.com/1tvytN.md)**
