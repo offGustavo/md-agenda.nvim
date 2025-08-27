@@ -7,7 +7,7 @@
 A Markdown time and task management plugin for NeoVim, inspired by org-agenda.
 
 > [!IMPORTANT]
-> **For the full documentation and syntax guide, please refer [here](https://zenarvus.com/1tvytN.md)**
+> **For the full documentation and syntax guide, please refer [here](https://github.com/zenarvus/md-agenda.nvim/wiki)**
 
 ## Showcase
 ![md-agenda-agenda.png](https://zenarvus.com/media/content/md-agenda-agenda.png)
