@@ -11,6 +11,7 @@ config.initConfig = function(opts)
 
 	config.config.habitViewPastItems = opts.habitViewPastItems or 24
 	config.config.habitViewFutureItems = opts.habitViewFutureItems or 3
+  config.config.habitFiles = opts.habit or { "habits.md" }
 	config.config.foldmarker = opts.folmarker or "{{{,}}}"
 
 	config.config.customTodoTypes = opts.customTodoTypes or {}

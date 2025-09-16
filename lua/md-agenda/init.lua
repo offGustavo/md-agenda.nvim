@@ -50,13 +50,37 @@ local function setup(opts)
 		end,
 	})
 
+	local HabitFiles = {}
+	for _, f in ipairs(config.config.habitFiles) do
+		table.insert(HabitFiles, f)
+	end
+
+	print(vim.inspect(HabitFiles))
+
+	if #HabitFiles > 0 then
+    local HabitOldFoldMethod = vim.o.foldmethod
+    local HabitOldFoldMarker = vim.o.foldmarker
+		vim.api.nvim_create_autocmd({ "BufEnter", "BufWinEnter" }, {
+			pattern = HabitFiles,
+			callback = function()
+				vim.o.foldmethod = "marker"
+				vim.o.foldmarker = config.config.foldmarker
+			end,
+		})
+
+    vim.api.nvim_create_autocmd("BufLeave", {
+      pattern = HabitFiles,
+      callback = function ()
+        vim.o.foldmethod = HabitOldFoldMethod
+				vim.o.foldmarker = HabitOldFoldMarker
+      end,
+    })
+
+	end
 
 	vim.api.nvim_create_autocmd("FileType", {
 		pattern = "markdown",
 		callback = function()
-
-			vim.opt.foldmethod="marker"
-			vim.opt.foldmarker = config.config.foldmarker
 
 			--Check Task -- (Modify the current buffer and the current line in markdown documents. This changes in the view buffers.)
 			vim.api.nvim_buf_create_user_command(0, 'CheckTask', function()
