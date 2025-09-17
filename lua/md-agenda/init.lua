@@ -55,8 +55,6 @@ local function setup(opts)
 		table.insert(HabitFiles, f)
 	end
 
-	print(vim.inspect(HabitFiles))
-
 	if #HabitFiles > 0 then
     local HabitOldFoldMethod = vim.o.foldmethod
     local HabitOldFoldMarker = vim.o.foldmarker
