@@ -1,4 +1,5 @@
 # md-agenda.nvim
+
 ![GitHub stars](https://img.shields.io/github/stars/zenarvus/md-agenda.nvim?style=flat-square)
 ![Forks](https://img.shields.io/github/forks/zenarvus/md-agenda.nvim?style=flat-square)
 ![Issues](https://img.shields.io/github/issues/zenarvus/md-agenda.nvim?style=flat-square)
@@ -10,14 +11,17 @@ A Markdown time and task management plugin for NeoVim, inspired by org-agenda.
 > **For the full documentation and syntax guide, please refer [here](https://github.com/zenarvus/md-agenda.nvim/wiki)**
 
 ## Showcase
+
 ![md-agenda-agenda.png](https://zenarvus.com/media/content/md-agenda-agenda.png)
 
 ![md-agenda-habits.png](https://zenarvus.com/media/content/md-agenda-habits.png)
 
 ## Installation/Configuration
+
 **This plugin requires [ripgrep](https://github.com/BurntSushi/ripgrep) to work!**
 
 ### Using lazy.nvim
+
 ```lua
 {"zenarvus/md-agenda.nvim",
     config = function ()
@@ -27,6 +31,10 @@ A Markdown time and task management plugin for NeoVim, inspired by org-agenda.
                 "~/notes/agenda.md", "~/notes/habits.md", -- Single Files
                 "~/notes/agendafiles/", -- Folders
             },
+            habitFiles = {
+                "~/notes/gym.md", "~/notes/habits.md", -- Single Files
+                "~/notes/habitfiles/", -- Folders
+            },
 
             --- OPTIONAL ---
             -- Number of days to display on one agenda view page. Default: 10
@@ -35,12 +43,12 @@ A Markdown time and task management plugin for NeoVim, inspired by org-agenda.
             remindDeadlineInDays=30,
             -- Number of days before the scheduled time to show a reminder for the task in the agenda view. Default: 10
             remindScheduledInDays=10,
-            
+
             -- Number of past days to show in the habit view. Default: 24
             habitViewPastItems=24,
             -- Number of future days to show in the habit view. Default: 3
             habitViewFutureItems=3,
- 
+
             -- For folding logbook entries. Default: {{{,}}}
             foldmarker="{{{,}}}",
 
