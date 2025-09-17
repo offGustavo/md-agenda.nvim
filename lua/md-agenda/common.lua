@@ -45,23 +45,23 @@ local function isDirectory(path)
 	return stat and stat.type == 'directory'
 end
 
-common.listAgendaFiles = function()
-	local agendaFiles = {}
-	for _,agendaFilePath in ipairs(config.config.agendaFiles) do
+common.listFiles = function(filesPath)
+	local files = {}
+	for _, filePath in ipairs(filesPath) do
+		filePath = vim.fn.expand(filePath)
 
-		agendaFilePath = vim.fn.expand(agendaFilePath)
-
-		if isDirectory(agendaFilePath) then
-			local fileList = vim.fn.systemlist("rg --files --glob '!.*' --glob '*.md' --glob '*.mdx' " .. agendaFilePath)
-			for _,oneFile in ipairs(fileList) do
-				table.insert(agendaFiles, oneFile)
+		if isDirectory(filePath) then
+			local fileList =
+				vim.fn.systemlist("rg --files --glob '!.*' --glob '*.md' --glob '*.mdx' " .. filePath)
+			for _, oneFile in ipairs(fileList) do
+				table.insert(files, oneFile)
 			end
 		else
-			table.insert(agendaFiles, agendaFilePath)
+			table.insert(files, filePath)
 		end
 	end
 
-	return agendaFiles
+	return files
 end
 
 --Gets the given unixTime's weekday and month, then based on the start point, counts the occurrence of this weekday from the start or the end until the given unixTime (Example: given date is in Monday and its the third monday in January from the start).
@@ -579,7 +579,7 @@ common.getAgendaItems = function(detailLevel)
 	}--]]
 	local agendaItems = {}
 
-	for _,agendaFilePath in ipairs(common.listAgendaFiles()) do
+	for _,agendaFilePath in ipairs(common.listFiles()) do
 		local file_content = vim.fn.readfile(agendaFilePath)
 		if file_content then
 			local lineNumber = 0

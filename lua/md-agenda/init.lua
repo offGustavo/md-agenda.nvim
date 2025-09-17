@@ -50,10 +50,7 @@ local function setup(opts)
 		end,
 	})
 
-	local HabitFiles = {}
-	for _, f in ipairs(config.config.habitFiles) do
-		table.insert(HabitFiles, f)
-	end
+  local HabitFiles = common.listFiles(config.config.habitFiles)
 
 	if #HabitFiles > 0 then
     local HabitOldFoldMethod = vim.o.foldmethod
