@@ -579,7 +579,7 @@ common.getAgendaItems = function(detailLevel)
 	}--]]
 	local agendaItems = {}
 
-	for _,agendaFilePath in ipairs(common.listFiles()) do
+	for _,agendaFilePath in ipairs(common.listFiles(config.config.agendaFiles)) do
 		local file_content = vim.fn.readfile(agendaFilePath)
 		if file_content then
 			local lineNumber = 0
