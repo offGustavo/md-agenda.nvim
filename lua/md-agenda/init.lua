@@ -50,27 +50,31 @@ local function setup(opts)
 		end,
 	})
 
-  local HabitFiles = common.listFiles(config.config.habitFiles)
+	--- List all habit files
+	local HabitFiles = common.listFiles(config.config.habitFiles)
 
 	if #HabitFiles > 0 then
-    local HabitOldFoldMethod = vim.o.foldmethod
-    local HabitOldFoldMarker = vim.o.foldmarker
+		-- Store the user's current fold settings
+		local HabitOldFoldMethod = vim.o.foldmethod
+		local HabitOldFoldMarker = vim.o.foldmarker
+
 		vim.api.nvim_create_autocmd({ "BufEnter", "BufWinEnter" }, {
 			pattern = HabitFiles,
 			callback = function()
+				-- Apply custom fold settings when entering a habit file
 				vim.o.foldmethod = "marker"
 				vim.o.foldmarker = config.config.foldmarker
 			end,
 		})
 
-    vim.api.nvim_create_autocmd("BufLeave", {
-      pattern = HabitFiles,
-      callback = function ()
-        vim.o.foldmethod = HabitOldFoldMethod
+		vim.api.nvim_create_autocmd("BufLeave", {
+			pattern = HabitFiles,
+			callback = function()
+				-- Restore the user's original fold settings when leaving
+				vim.o.foldmethod = HabitOldFoldMethod
 				vim.o.foldmarker = HabitOldFoldMarker
-      end,
-    })
-
+			end,
+		})
 	end
 
 	vim.api.nvim_create_autocmd("FileType", {
