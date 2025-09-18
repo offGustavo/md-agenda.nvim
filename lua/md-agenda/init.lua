@@ -50,36 +50,23 @@ local function setup(opts)
 		end,
 	})
 
-	--- List all habit files
-	local HabitFiles = common.listFiles(config.config.habitFiles)
-
-	if #HabitFiles > 0 then
-		-- Store the user's current fold settings
-		local HabitOldFoldMethod = vim.o.foldmethod
-		local HabitOldFoldMarker = vim.o.foldmarker
-
-		vim.api.nvim_create_autocmd({ "BufEnter", "BufWinEnter" }, {
-			pattern = HabitFiles,
-			callback = function()
-				-- Apply custom fold settings when entering a habit file
-				vim.o.foldmethod = "marker"
-				vim.o.foldmarker = config.config.foldmarker
-			end,
-		})
-
-		vim.api.nvim_create_autocmd("BufLeave", {
-			pattern = HabitFiles,
-			callback = function()
-				-- Restore the user's original fold settings when leaving
-				vim.o.foldmethod = HabitOldFoldMethod
-				vim.o.foldmarker = HabitOldFoldMarker
-			end,
-		})
-	end
-
 	vim.api.nvim_create_autocmd("FileType", {
 		pattern = "markdown",
 		callback = function()
+
+			-- Save user's original foldmethod setting
+			local userFoldMethod = vim.o.foldmethod
+
+			-- Apply custom folding based on user's existing foldmethod
+			if userFoldMethod == "expr" then
+				vim.wo.foldexpr = 'v:lua.require("md-agenda.common").fold_details()'
+			elseif userFoldMethod == "syntax" then
+				-- Add syntax-based folding for logbook sections without overriding existing syntax
+				vim.cmd('syntax region logbookFold start="<details logbook>" end="</details>" transparent fold')
+				vim.cmd('syntax sync fromstart')
+			end
+			-- Keep original marker-based folding, no changes needed
+			-- Keep original indent folding, no changes needed
 
 			--Check Task -- (Modify the current buffer and the current line in markdown documents. This changes in the view buffers.)
 			vim.api.nvim_buf_create_user_command(0, 'CheckTask', function()
