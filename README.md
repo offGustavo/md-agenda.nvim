@@ -31,10 +31,6 @@ A Markdown time and task management plugin for NeoVim, inspired by org-agenda.
                 "~/notes/agenda.md", "~/notes/habits.md", -- Single Files
                 "~/notes/agendafiles/", -- Folders
             },
-            habitFiles = {
-                "~/notes/gym.md", "~/notes/habits.md", -- Single Files
-                "~/notes/habitfiles/", -- Folders
-            },
 
             --- OPTIONAL ---
             -- Number of days to display on one agenda view page. Default: 10

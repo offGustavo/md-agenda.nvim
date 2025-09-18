@@ -9,7 +9,6 @@ config.initConfig = function(opts)
 	config.config.remindDeadlineInDays = opts.remindDeadlineInDays or 30
 	config.config.remindScheduledInDays = opts.remindScheduledInDays or 10
 
-  config.config.habitFiles = opts.habit or {}
 	config.config.habitViewPastItems = opts.habitViewPastItems or 24
 	config.config.habitViewFutureItems = opts.habitViewFutureItems or 3
 	config.config.foldmarker = opts.folmarker or "{{{,}}}"
