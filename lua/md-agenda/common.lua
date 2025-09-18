@@ -6,7 +6,7 @@ local common = {}
 local vim = vim
 
 -----------VARS--------------
-common.oneDay = 24*60*60 --one day in seconds
+common.oneDay = 24 * 60 * 60 --one day in seconds
 
 ------------GET MAP ITEM COUNT--------------
 common.getMapItemCount = function(map)
@@ -66,18 +66,17 @@ end
 
 --Gets the given unixTime's weekday and month, then based on the start point, counts the occurrence of this weekday from the start or the end until the given unixTime (Example: given date is in Monday and its the third monday in January from the start).
 local function getWeekdayOccurenceCountInMonthUntilGivenDate(startPoint, unixTime)
---\{{{
+	--\{{{
 	local timeTable = os.date("*t", unixTime)
 	local occurrenceCount = 0
 
 	--Start from the start
 	if startPoint == 1 then
-		local firstDayOfMonth = os.time({year = timeTable.year, month = timeTable.month, day=1})
+		local firstDayOfMonth = os.time({ year = timeTable.year, month = timeTable.month, day = 1 })
 
 		--Find the first same weekday of the same month
 		local occurrence = firstDayOfMonth
-		while os.date("*t", occurrence).wday ~= timeTable.wday  do
-
+		while os.date("*t", occurrence).wday ~= timeTable.wday do
 			occurrence = occurrence + common.oneDay
 		end
 
@@ -88,15 +87,15 @@ local function getWeekdayOccurenceCountInMonthUntilGivenDate(startPoint, unixTim
 			occurrence = occurrence + common.oneDay * 7
 		end
 
-	--Start from the end
+		--Start from the end
 	elseif startPoint == -1 then
 		--To get the last day of this month, get the next month's first day, then subtract one day, finally, convert the new result to the table.
-		local lastDayOfMonth = os.time(os.date("*t", os.time({year = timeTable.year, month = timeTable.month+1, day=1}) - common.oneDay))
+		local lastDayOfMonth = os.time(os.date("*t",
+			os.time({ year = timeTable.year, month = timeTable.month + 1, day = 1 }) - common.oneDay))
 
 		--Find the last same weekday of the same month
 		local occurrence = lastDayOfMonth
 		while os.date("*t", occurrence).wday ~= timeTable.wday do
-
 			occurrence = occurrence - common.oneDay
 		end
 
@@ -109,16 +108,16 @@ local function getWeekdayOccurenceCountInMonthUntilGivenDate(startPoint, unixTim
 	end
 
 	return occurrenceCount
---\}}}
+	--\}}}
 end
 
 common.parseTaskTime = function(timeString)
---\{{{
+	--\{{{
 	--time string's format: 2025-12-30 18:05 +1d (the last one is the repeat interval and is optional)
 	local taskTimeMap = {}
 
-	local year,month,day=timeString:match("([0-9]+)-([0-9]+)-([0-9]+)")
-	local hour,minute=timeString:match("([0-9]+):([0-9]+)")
+	local year, month, day = timeString:match("([0-9]+)-([0-9]+)-([0-9]+)")
+	local hour, minute = timeString:match("([0-9]+):([0-9]+)")
 	if (not hour) and (not minute) then
 		hour = "0"
 		minute = "0"
@@ -130,23 +129,22 @@ common.parseTaskTime = function(timeString)
 		day = tonumber(day),
 		hour = tonumber(hour),
 		min = tonumber(minute),
-		sec = 0,  -- seconds can be set to 0
-		isdst = false  -- daylight saving time flag
+		sec = 0, -- seconds can be set to 0
+		isdst = false -- daylight saving time flag
 	}
 	local taskUnixTime = os.time(taskTimeTable)
-	taskTimeMap["unixTime"]=taskUnixTime
+	taskTimeMap["unixTime"] = taskUnixTime
 
 	local currentUnixTime = os.time()
 	local currentTimeTable = os.date("*t", currentUnixTime)
 
 	--make it day start
-	currentTimeTable.hour, currentTimeTable.min, currentTimeTable.sec = 0,0,0
+	currentTimeTable.hour, currentTimeTable.min, currentTimeTable.sec = 0, 0, 0
 
 	--repeat indicator's format: ++12d, +3w, .+1m etc.
 	local repeatType, repeatNum, repeatInterval = timeString:match(" ([%.%+]+)([0-9]+)([a-z])")
 
 	if repeatType and repeatNum and repeatInterval then
-
 		if repeatType ~= "+" and repeatType ~= "++" and repeatType ~= ".+" then
 			print("invalid repeat type. You can only use '+', '++' and '.+'")
 			return
@@ -155,7 +153,7 @@ common.parseTaskTime = function(timeString)
 		taskTimeMap["repeatType"] = repeatType
 
 		if repeatInterval ~= "d" and repeatInterval ~= "w" and repeatInterval ~= "m" and repeatInterval ~= "y" and
-		repeatInterval ~= "x" and repeatInterval ~= "z" then
+			repeatInterval ~= "x" and repeatInterval ~= "z" then
 			print("invalid repeat interval. You can only use d(day), w(week), m(month), y(year), x and z")
 			return
 		end
@@ -172,7 +170,6 @@ common.parseTaskTime = function(timeString)
 			--Consider task's date day start
 			timeTableToBeUsed = taskTimeTable
 			--timeTableToBeUsed.hour, timeTableToBeUsed.min = 0,0
-
 		elseif repeatType == ".+" then
 			--Consider today's date
 			timeTableToBeUsed = currentTimeTable
@@ -181,129 +178,122 @@ common.parseTaskTime = function(timeString)
 		----------------
 
 		--day
-		if repeatInterval=="d" then
-			timeTableToBeUsed.day=timeTableToBeUsed.day+num
+		if repeatInterval == "d" then
+			timeTableToBeUsed.day = timeTableToBeUsed.day + num
 			taskTimeMap["nextUnixTime"] = os.time(timeTableToBeUsed)
 
-		--week
-		elseif repeatInterval=="w" then
-			timeTableToBeUsed.day=timeTableToBeUsed.day+7*num
+			--week
+		elseif repeatInterval == "w" then
+			timeTableToBeUsed.day = timeTableToBeUsed.day + 7 * num
 			taskTimeMap["nextUnixTime"] = os.time(timeTableToBeUsed)
 
-		--month
-		elseif repeatInterval=="m" then
+			--month
+		elseif repeatInterval == "m" then
 			timeTableToBeUsed.month = timeTableToBeUsed.month + num
 			taskTimeMap["nextUnixTime"] = os.time(timeTableToBeUsed)
 
-		--year
-		elseif repeatInterval=="y" then
+			--year
+		elseif repeatInterval == "y" then
 			timeTableToBeUsed.year = timeTableToBeUsed.year + num
 			taskTimeMap["nextUnixTime"] = os.time(timeTableToBeUsed)
 
-		--x or z
-		elseif repeatInterval=="x" or repeatInterval=="z" then
+			--x or z
+		elseif repeatInterval == "x" or repeatInterval == "z" then
 			local taskDateWithDetails = os.date("*t", taskUnixTime)
 			local taskWeekday = taskDateWithDetails.wday
 			local taskMonth = taskDateWithDetails.month
 			local taskYear = taskDateWithDetails.year
 
-			if repeatInterval=="x" then
+			if repeatInterval == "x" then
 				--Weekday's occurrence count in the month from the month's start to the taskUnixTime
-				local occurrenceCount = getWeekdayOccurenceCountInMonthUntilGivenDate(1,taskUnixTime)
+				local occurrenceCount = getWeekdayOccurenceCountInMonthUntilGivenDate(1, taskUnixTime)
 
-				taskTimeMap["nextUnixTime"] = os.time({year=taskYear+num, month=taskMonth, day=1})
+				taskTimeMap["nextUnixTime"] = os.time({ year = taskYear + num, month = taskMonth, day = 1 })
 				--Do a loop until the nexUnixTime's weekday and its occurrenceCount is equal to task's
 				while os.date("*t", taskTimeMap["nextUnixTime"]).wday ~= taskWeekday and
-				occurrenceCount ~= getWeekdayOccurenceCountInMonthUntilGivenDate(1, taskTimeMap["nextUnixTime"]) do
-
+					occurrenceCount ~= getWeekdayOccurenceCountInMonthUntilGivenDate(1, taskTimeMap["nextUnixTime"]) do
 					taskTimeMap["nextUnixTime"] = taskTimeMap["nextUnixTime"] + common.oneDay
 				end
-
-			elseif repeatInterval=="z" then
+			elseif repeatInterval == "z" then
 				--Weekday's occurrence count in the month from the month's end to the taskUnixTime
-				local occurrenceCount = getWeekdayOccurenceCountInMonthUntilGivenDate(-1,taskUnixTime)
+				local occurrenceCount = getWeekdayOccurenceCountInMonthUntilGivenDate(-1, taskUnixTime)
 
-				taskTimeMap["nextUnixTime"] = os.time({year=taskYear+num, month=taskMonth, day=1})
+				taskTimeMap["nextUnixTime"] = os.time({ year = taskYear + num, month = taskMonth, day = 1 })
 				--Do a loop until the nexUnixTime's weekday and its occurrenceCount is equal to task's
 				while os.date("*t", taskTimeMap["nextUnixTime"]).wday ~= taskWeekday and
-				occurrenceCount ~= getWeekdayOccurenceCountInMonthUntilGivenDate(-1, taskTimeMap["nextUnixTime"]) do
-
+					occurrenceCount ~= getWeekdayOccurenceCountInMonthUntilGivenDate(-1, taskTimeMap["nextUnixTime"]) do
 					taskTimeMap["nextUnixTime"] = taskTimeMap["nextUnixTime"] + common.oneDay
 				end
 			end
-
 		end
 
 		-----------------
 
 		--if the repeat type is "++" and the next unix time is in the past, increase it until it shows a future time.
-		if repeatType=="++" and taskTimeMap["nextUnixTime"] < currentUnixTime then
-				local taskDateWithDetails = os.date("*t", taskUnixTime)
-				--start the nextUnixTime from today.
-				taskTimeMap["nextUnixTime"] = currentUnixTime
-				while true do
-					if currentUnixTime < taskTimeMap["nextUnixTime"] then
-						if repeatInterval=="d" then
+		if repeatType == "++" and taskTimeMap["nextUnixTime"] < currentUnixTime then
+			local taskDateWithDetails = os.date("*t", taskUnixTime)
+			--start the nextUnixTime from today.
+			taskTimeMap["nextUnixTime"] = currentUnixTime
+			while true do
+				if currentUnixTime < taskTimeMap["nextUnixTime"] then
+					if repeatInterval == "d" then
+						break
+					elseif repeatInterval == "w" then
+						if taskDateWithDetails.wday == os.date("*t", taskTimeMap["nextUnixTime"]).wday then
 							break
-
-						elseif repeatInterval=="w" then
-							if taskDateWithDetails.wday == os.date("*t", taskTimeMap["nextUnixTime"]).wday then
-								break
-							end
-
-						elseif repeatInterval=="m" then
-							if taskDateWithDetails.day == os.date("*t", taskTimeMap["nextUnixTime"]).day then
-								break
-							end
-
-						elseif repeatInterval=="y" then
-							if taskDateWithDetails.month == os.date("*t", taskTimeMap["nextUnixTime"]).month and
+						end
+					elseif repeatInterval == "m" then
+						if taskDateWithDetails.day == os.date("*t", taskTimeMap["nextUnixTime"]).day then
+							break
+						end
+					elseif repeatInterval == "y" then
+						if taskDateWithDetails.month == os.date("*t", taskTimeMap["nextUnixTime"]).month and
 							taskDateWithDetails.day == os.date("*t", taskTimeMap["nextUnixTime"]).day then
-								break
-							end
-
-						elseif repeatInterval=="x" or repeatInterval=="z" then
-							if taskDateWithDetails.year < os.date("*t", taskTimeMap["nextUnixTime"]).year and
+							break
+						end
+					elseif repeatInterval == "x" or repeatInterval == "z" then
+						if taskDateWithDetails.year < os.date("*t", taskTimeMap["nextUnixTime"]).year and
 							taskDateWithDetails.wday == os.date("*t", taskTimeMap["nextUnixTime"]).wday and
 							taskDateWithDetails.month == os.date("*t", taskTimeMap["nextUnixTime"]).month then
-								if repeatInterval=="x" and
-								getWeekdayOccurenceCountInMonthUntilGivenDate(1, taskTimeMap["nextUnixTime"]) == getWeekdayOccurenceCountInMonthUntilGivenDate(1,taskUnixTime) then
-									break
-								elseif repeatInterval=="z" and
-								getWeekdayOccurenceCountInMonthUntilGivenDate(-1, taskTimeMap["nextUnixTime"]) == getWeekdayOccurenceCountInMonthUntilGivenDate(-1,taskUnixTime) then
-									break
-								end
+							if repeatInterval == "x" and
+								getWeekdayOccurenceCountInMonthUntilGivenDate(1, taskTimeMap["nextUnixTime"]) == getWeekdayOccurenceCountInMonthUntilGivenDate(1, taskUnixTime) then
+								break
+							elseif repeatInterval == "z" and
+								getWeekdayOccurenceCountInMonthUntilGivenDate(-1, taskTimeMap["nextUnixTime"]) == getWeekdayOccurenceCountInMonthUntilGivenDate(-1, taskUnixTime) then
+								break
 							end
 						end
-
-						local nextUnixTime = taskTimeMap["nextUnixTime"] + common.oneDay
-						taskTimeMap["nextUnixTime"] = nextUnixTime
 					end
+
+					local nextUnixTime = taskTimeMap["nextUnixTime"] + common.oneDay
+					taskTimeMap["nextUnixTime"] = nextUnixTime
 				end
+			end
 		end
 
-		taskTimeMap["nextTimeStr"] = os.date("%Y-%m-%d %H:%M", taskTimeMap["nextUnixTime"]) .." "..repeatType..repeatNum..repeatInterval
+		taskTimeMap["nextTimeStr"] = os.date("%Y-%m-%d %H:%M", taskTimeMap["nextUnixTime"]) ..
+		" " .. repeatType .. repeatNum .. repeatInterval
 	end
 
 	return taskTimeMap
---\}}}
+	--\}}}
 end
 
 --Checks if the given date is in the range of the given task time string
 --wantedDateStr's format: 2000-12-30
 --if returned value is false, it means that date is a free time
 common.IsDateInRangeOfGivenRepeatingTimeStr = function(repeatingTimeStr, wantedDateStr)
-	local ryear,rmonth,rday=repeatingTimeStr:match("([0-9]+)-([0-9]+)-([0-9]+)")
+	local ryear, rmonth, rday = repeatingTimeStr:match("([0-9]+)-([0-9]+)-([0-9]+)")
 
 	local repeatingTimeTable = {
 		year = tonumber(ryear),
 		month = tonumber(rmonth),
 		day = tonumber(rday),
-		isdst = false  -- daylight saving time flag
+		isdst = false -- daylight saving time flag
 	}
 	local repeatingTimeUnix = os.time(repeatingTimeTable)
 
-	local wyear,wmonth,wday=wantedDateStr:match("([0-9]+)-([0-9]+)-([0-9]+)")
+	local wyear, wmonth, wday = wantedDateStr:match("([0-9]+)-([0-9]+)-([0-9]+)")
 	local wantedDateTable = {
 		year = tonumber(wyear),
 		month = tonumber(wmonth),
@@ -314,7 +304,6 @@ common.IsDateInRangeOfGivenRepeatingTimeStr = function(repeatingTimeStr, wantedD
 
 	local repeatType, repeatNumStr, repeatInterval = repeatingTimeStr:match(" ([%.%+]+)([0-9]+)([a-z])")
 	if repeatType and repeatNumStr and repeatInterval then
-
 		local repeatNum = tonumber(repeatNumStr)
 
 		-------------------
@@ -324,7 +313,7 @@ common.IsDateInRangeOfGivenRepeatingTimeStr = function(repeatingTimeStr, wantedD
 			return false
 		end
 		if repeatInterval ~= "d" and repeatInterval ~= "w" and repeatInterval ~= "m" and repeatInterval ~= "y" and
-		repeatInterval ~= "x" and repeatInterval ~= "z" then
+			repeatInterval ~= "x" and repeatInterval ~= "z" then
 			print("invalid repeat interval. You can only use d(day), w(week), m(month), y(year), x and z.")
 			return false
 		end
@@ -340,54 +329,53 @@ common.IsDateInRangeOfGivenRepeatingTimeStr = function(repeatingTimeStr, wantedD
 
 		if repeatInterval == "y" then
 			if repeatingTimeTable.month == wantedDateTable.month and
-			repeatingTimeTable.day == wantedDateTable.day then
+				repeatingTimeTable.day == wantedDateTable.day then
 				return true
-
-			else return false end
-
+			else
+				return false
+			end
 		elseif repeatInterval == "m" then
 			if repeatingTimeTable.day == wantedDateTable.day then
 				return true
-
-			else return false end
-
+			else
+				return false
+			end
 		elseif repeatInterval == "w" then
-			if os.date("*t",repeatingTimeUnix).wday == os.date("*t",wantedDateUnix) then
+			if os.date("*t", repeatingTimeUnix).wday == os.date("*t", wantedDateUnix) then
 				return true
-
-			else return false end
-
+			else
+				return false
+			end
 		elseif repeatInterval == "d" then
 			--days since epoch
 			local repeatingTimeDSE = math.floor(repeatingTimeUnix / common.oneDay)
 			local wantedDateDSE = math.floor(wantedDateUnix / common.oneDay)
 
-			--this formula means that we can eventually arrive to wantedDate from repeatingTime if we add or subtract repeatNum 
+			--this formula means that we can eventually arrive to wantedDate from repeatingTime if we add or subtract repeatNum
 			if (wantedDateDSE - repeatingTimeDSE) % repeatNum == 0 then
 				return true
+			else
+				return false
+			end
 
-			else return false end
-
-		--------
+			--------
 		elseif repeatInterval == "x" then
 			if os.date("*t", wantedDateUnix).wday == os.date("*t", repeatingTimeUnix).wday and
-			wantedDateTable.month == repeatingTimeTable.month then
+				wantedDateTable.month == repeatingTimeTable.month then
 				if getWeekdayOccurenceCountInMonthUntilGivenDate(1, wantedDateUnix) == getWeekdayOccurenceCountInMonthUntilGivenDate(1, repeatingTimeUnix) then
 					return true
 				end
 			end
 			return false
-
 		elseif repeatInterval == "z" then
 			if os.date("*t", wantedDateUnix).wday == os.date("*t", repeatingTimeUnix).wday and
-			wantedDateTable.month == repeatingTimeTable.month then
+				wantedDateTable.month == repeatingTimeTable.month then
 				if getWeekdayOccurenceCountInMonthUntilGivenDate(-1, wantedDateUnix) == getWeekdayOccurenceCountInMonthUntilGivenDate(-1, repeatingTimeUnix) then
 					return true
 				end
 			end
 			return false
 		end
-
 	else
 		print("Given date is not a repeating task")
 		return false
@@ -403,7 +391,7 @@ common.getTaskProperties = function(ContentLinesArr, taskLineNum, withLineNum)
 	local propertyLineNum = taskLineNum + 1
 
 	local currentLine = 0
-	for _,line in ipairs(ContentLinesArr) do
+	for _, line in ipairs(ContentLinesArr) do
 		currentLine = currentLine + 1
 
 		if currentLine < propertyLineNum then
@@ -412,26 +400,28 @@ common.getTaskProperties = function(ContentLinesArr, taskLineNum, withLineNum)
 
 		local propertyPattern = "^ *- (.+): `(.*)`"
 
-		local key,value = line:match(propertyPattern)
+		local key, value = line:match(propertyPattern)
 		if key and value then
 			--if value points to a lua script
 			local luaScriptPath = value:match("%$%((.*)%)")
 			if luaScriptPath then
 				--make the value the returned lua script value
 				if withLineNum then
-					properities[key]={propertyLineNum, loadfile(luaScriptPath)()}
-
-				else properities[key]=loadfile(luaScriptPath)() end
+					properities[key] = { propertyLineNum, loadfile(luaScriptPath)() }
+				else
+					properities[key] = loadfile(luaScriptPath)()
+				end
 			else
 				if withLineNum then
-					properities[key]={propertyLineNum, value}
-
-				else properities[key]=value end
+					properities[key] = { propertyLineNum, value }
+				else
+					properities[key] = value
+				end
 			end
 
-			propertyLineNum=propertyLineNum+1
+			propertyLineNum = propertyLineNum + 1
 		else
-		  break
+			break
 		end
 
 		::continue::
@@ -442,7 +432,6 @@ end
 
 --add a new property to the task or update the existing one
 common.addPropertyToItem = function(fileLines, itemLineNum, key, value)
-
 	local taskProperties = common.getTaskProperties(fileLines, itemLineNum, true)
 
 	-- If it exists, update
@@ -450,7 +439,7 @@ common.addPropertyToItem = function(fileLines, itemLineNum, key, value)
 		local propertyLineNum = taskProperties[key][1]
 		fileLines[propertyLineNum] = string.format("- %s: `%s`", key, value)
 
-	-- If it does not exist, create
+		-- If it does not exist, create
 	else
 		local newProperty = string.format("- %s: `%s`", key, value)
 		table.insert(fileLines, itemLineNum + 1, newProperty)
@@ -461,10 +450,10 @@ end
 
 --New function that uses given filepath instead of the current buffer.
 common.addItemToLogbook = function(fileLines, itemLineNum, logStr)
-	local lineNum = itemLineNum+1
+	local lineNum = itemLineNum + 1
 
 	local logbookExists = false
-	local logbookStart=0
+	local logbookStart = 0
 
 	--determine if the task has a logbook
 	while true do
@@ -479,27 +468,48 @@ common.addItemToLogbook = function(fileLines, itemLineNum, logStr)
 			logbookStart = lineNum
 			logbookExists = true
 			break
-
 		end
 
-		lineNum=lineNum+1
+		lineNum = lineNum + 1
+	end
+
+	-- Get user's foldmarker setting or use default
+	local foldmarker_start, foldmarker_end
+	local userFoldMethod = vim.o.foldmethod
+	if userFoldMethod == "marker" and vim.o.foldmarker ~= "" then
+		local markers = vim.split(vim.o.foldmarker, ",")
+		foldmarker_start = markers[1] or "{{{"
+		foldmarker_end = markers[2] or "}}}"
 	end
 
 	if logbookExists then
 		--there must be a line space between <details logbook> html tag and markdown. So we put new markdown log to two line under the details tag
-		table.insert(fileLines, logbookStart+2, "  "..logStr)
+		table.insert(fileLines, logbookStart + 2, "  " .. logStr)
 
-	--if logbook does not found, create one and insert the logStr
+		--if logbook does not found, create one and insert the logStr
 	else
 		--insert below properties
 		local properties = common.getTaskProperties(fileLines, itemLineNum, true)
 		local propertyCount = common.getMapItemCount(properties)
 
 		local newLines = {}
-		table.insert(newLines, "<details logbook><!--"..common.splitFoldmarkerString()[1].."-->")
+
+		-- Only add fold markers if user uses marker folding method
+		if userFoldMethod == "marker" then
+			table.insert(newLines, "<details logbook><!--" .. foldmarker_start .. "-->")
+		else
+			table.insert(newLines, "<details logbook>")
+		end
+
 		table.insert(newLines, "")
 		table.insert(newLines, logStr)
-		table.insert(newLines, "<!--"..common.splitFoldmarkerString()[2].."--></details>")
+
+		-- Only add fold markers if user uses marker folding method
+		if userFoldMethod == "marker" then
+			table.insert(newLines, "<!--" .. foldmarker_end .. "--></details>")
+		else
+			table.insert(newLines, "</details>")
+		end
 
 		for i, newLine in ipairs(newLines) do
 			table.insert(fileLines, itemLineNum + propertyCount + i, newLine)
@@ -517,11 +527,11 @@ common.getLogbookEntries = function(ContentLinesArr, taskLineNum)
 	local logbookStartPassed = false
 
 	local lineNumber = 0
-	for _,line in ipairs(ContentLinesArr) do
-		lineNumber = lineNumber+1
+	for _, line in ipairs(ContentLinesArr) do
+		lineNumber = lineNumber + 1
 
 		--skip task headline
-		if lineNumber < taskLineNum+1 then goto continue end
+		if lineNumber < taskLineNum + 1 then goto continue end
 
 		if line:match(".*<details logbook>") then
 			logbookStartPassed = true
@@ -579,28 +589,27 @@ common.getAgendaItems = function(detailLevel)
 	}--]]
 	local agendaItems = {}
 
-	for _,agendaFilePath in ipairs(common.listFiles(config.config.agendaFiles)) do
+	for _, agendaFilePath in ipairs(common.listFiles(config.config.agendaFiles)) do
 		local file_content = vim.fn.readfile(agendaFilePath)
 		if file_content then
 			local lineNumber = 0
-			for _,line in ipairs(file_content) do
-				lineNumber = lineNumber+1
+			for _, line in ipairs(file_content) do
+				lineNumber = lineNumber + 1
 
-				local taskType,title = line:match("^#+ (.+): (.*)")
+				local taskType, title = line:match("^#+ (.+): (.*)")
 				if taskType and title then
-
 					local agendaItem = {}
 
-					agendaItem.metadata ={agendaFilePath, lineNumber}
+					agendaItem.metadata = { agendaFilePath, lineNumber }
 
-					agendaItem.agendaItem ={taskType, title, line}
+					agendaItem.agendaItem = { taskType, title, line }
 
 					if detailLevel ~= "minimal" then
 						agendaItem.properties = common.getTaskProperties(file_content, lineNumber)
 
 						--Try to get the logbook entries only if the agenda item has a repeat indicator.
 						if (agendaItem.properties["Scheduled"] and agendaItem.properties["Scheduled"]:match(" [%.%+]+[0-9]+[a-z]")) or
-						(agendaItem.properties["Deadline"] and agendaItem.properties["Deadline"]:match(" [%.%+]+[0-9]+[a-z]")) then
+							(agendaItem.properties["Deadline"] and agendaItem.properties["Deadline"]:match(" [%.%+]+[0-9]+[a-z]")) then
 							agendaItem.logbookItems = common.getLogbookEntries(file_content, lineNumber)
 						end
 					end
