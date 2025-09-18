@@ -479,27 +479,48 @@ common.addItemToLogbook = function(fileLines, itemLineNum, logStr)
 			logbookStart = lineNum
 			logbookExists = true
 			break
-
 		end
 
 		lineNum=lineNum+1
 	end
 
+	-- Get user's foldmarker setting or use default
+	local foldmarker_start, foldmarker_end
+	local userFoldMethod = vim.o.foldmethod
+	if userFoldMethod == "marker" and vim.o.foldmarker ~= "" then
+		local markers = vim.split(vim.o.foldmarker, ",")
+		foldmarker_start = markers[1] or "{{{"
+		foldmarker_end = markers[2] or "}}}"
+	end
+
 	if logbookExists then
 		--there must be a line space between <details logbook> html tag and markdown. So we put new markdown log to two line under the details tag
-		table.insert(fileLines, logbookStart+2, "  "..logStr)
+		table.insert(fileLines, logbookStart + 2, "  " .. logStr)
 
-	--if logbook does not found, create one and insert the logStr
+		--if logbook does not found, create one and insert the logStr
 	else
 		--insert below properties
 		local properties = common.getTaskProperties(fileLines, itemLineNum, true)
 		local propertyCount = common.getMapItemCount(properties)
 
 		local newLines = {}
-		table.insert(newLines, "<details logbook><!--"..common.splitFoldmarkerString()[1].."-->")
+
+		-- Only add fold markers if user uses marker folding method
+		if userFoldMethod == "marker" then
+			table.insert(newLines, "<details logbook><!--" .. foldmarker_start .. "-->")
+		else
+			table.insert(newLines, "<details logbook>")
+		end
+
 		table.insert(newLines, "")
 		table.insert(newLines, logStr)
-		table.insert(newLines, "<!--"..common.splitFoldmarkerString()[2].."--></details>")
+
+		-- Only add fold markers if user uses marker folding method
+		if userFoldMethod == "marker" then
+			table.insert(newLines, "<!--" .. foldmarker_end .. "--></details>")
+		else
+			table.insert(newLines, "</details>")
+		end
 
 		for i, newLine in ipairs(newLines) do
 			table.insert(fileLines, itemLineNum + propertyCount + i, newLine)
