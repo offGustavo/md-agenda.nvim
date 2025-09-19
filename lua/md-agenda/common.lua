@@ -45,23 +45,23 @@ local function isDirectory(path)
 	return stat and stat.type == 'directory'
 end
 
-common.listAgendaFiles = function()
-	local agendaFiles = {}
-	for _,agendaFilePath in ipairs(config.config.agendaFiles) do
+common.listFiles = function(filesPath)
+	local files = {}
+	for _, filePath in ipairs(filesPath) do
+		filePath = vim.fn.expand(filePath)
 
-		agendaFilePath = vim.fn.expand(agendaFilePath)
-
-		if isDirectory(agendaFilePath) then
-			local fileList = vim.fn.systemlist("rg --files --glob '!.*' --glob '*.md' --glob '*.mdx' " .. agendaFilePath)
-			for _,oneFile in ipairs(fileList) do
-				table.insert(agendaFiles, oneFile)
+		if isDirectory(filePath) then
+			local fileList =
+				vim.fn.systemlist("rg --files --glob '!.*' --glob '*.md' --glob '*.mdx' " .. filePath)
+			for _, oneFile in ipairs(fileList) do
+				table.insert(files, oneFile)
 			end
 		else
-			table.insert(agendaFiles, agendaFilePath)
+			table.insert(files, filePath)
 		end
 	end
 
-	return agendaFiles
+	return files
 end
 
 --Gets the given unixTime's weekday and month, then based on the start point, counts the occurrence of this weekday from the start or the end until the given unixTime (Example: given date is in Monday and its the third monday in January from the start).
@@ -479,27 +479,48 @@ common.addItemToLogbook = function(fileLines, itemLineNum, logStr)
 			logbookStart = lineNum
 			logbookExists = true
 			break
-
 		end
 
 		lineNum=lineNum+1
 	end
 
+	-- Get user's foldmarker setting or use default
+	local foldmarker_start, foldmarker_end
+	local userFoldMethod = vim.o.foldmethod
+	if userFoldMethod == "marker" and vim.o.foldmarker ~= "" then
+		local markers = vim.split(vim.o.foldmarker, ",")
+		foldmarker_start = markers[1] or "{{{"
+		foldmarker_end = markers[2] or "}}}"
+	end
+
 	if logbookExists then
 		--there must be a line space between <details logbook> html tag and markdown. So we put new markdown log to two line under the details tag
-		table.insert(fileLines, logbookStart+2, "  "..logStr)
+		table.insert(fileLines, logbookStart + 2, "  " .. logStr)
 
-	--if logbook does not found, create one and insert the logStr
+		--if logbook does not found, create one and insert the logStr
 	else
 		--insert below properties
 		local properties = common.getTaskProperties(fileLines, itemLineNum, true)
 		local propertyCount = common.getMapItemCount(properties)
 
 		local newLines = {}
-		table.insert(newLines, "<details logbook><!--"..common.splitFoldmarkerString()[1].."-->")
+
+		-- Only add fold markers if user uses marker folding method
+		if userFoldMethod == "marker" then
+			table.insert(newLines, "<details logbook><!--" .. foldmarker_start .. "-->")
+		else
+			table.insert(newLines, "<details logbook>")
+		end
+
 		table.insert(newLines, "")
 		table.insert(newLines, logStr)
-		table.insert(newLines, "<!--"..common.splitFoldmarkerString()[2].."--></details>")
+
+		-- Only add fold markers if user uses marker folding method
+		if userFoldMethod == "marker" then
+			table.insert(newLines, "<!--" .. foldmarker_end .. "--></details>")
+		else
+			table.insert(newLines, "</details>")
+		end
 
 		for i, newLine in ipairs(newLines) do
 			table.insert(fileLines, itemLineNum + propertyCount + i, newLine)
@@ -579,7 +600,7 @@ common.getAgendaItems = function(detailLevel)
 	}--]]
 	local agendaItems = {}
 
-	for _,agendaFilePath in ipairs(common.listAgendaFiles()) do
+	for _,agendaFilePath in ipairs(common.listFiles(config.config.agendaFiles)) do
 		local file_content = vim.fn.readfile(agendaFilePath)
 		if file_content then
 			local lineNumber = 0
@@ -612,6 +633,25 @@ common.getAgendaItems = function(detailLevel)
 	end
 
 	return agendaItems
+end
+
+
+----------------FOLD LOGBOOK DETAILS FOR EXPR/SYNTAX----------------
+common.fold_details = function()
+	local line = vim.fn.getline(vim.v.lnum)
+	if string.match(line, "<details logbook>") then
+		vim.b.insideLogbook = true
+		return 1
+	elseif string.match(line, "</details>") then
+		vim.b.insideLogbook = false
+		return 1
+	end
+
+	if vim.b.insideLogbook then
+		return 1
+	end
+
+	return 0
 end
 
 return common
